@@ -20,8 +20,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static('public'));
+
+app.use(express.static(__dirname+'/public'));
 app.use('/profile_picture', express.static('profile_picture'));
 app.use('/post_picture', express.static('post_picture'));
 

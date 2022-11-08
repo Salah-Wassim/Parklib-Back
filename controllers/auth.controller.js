@@ -1,8 +1,8 @@
 const User = require("../models").User;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-const SALT_HASH_KEY = 11;
+const constante = require('../utils/constantes.util.js');
+require('dotenv').config();
 
 exports.register = (req, res) => {
     // Validate request
@@ -12,7 +12,7 @@ exports.register = (req, res) => {
         });
     }
 
-    bcrypt.hash(req.body.password, SALT_HASH_KEY).then(hash => {
+    bcrypt.hash(req.body.password, constante.SALT_HASH_KEY).then(hash => {
         // Create a User
         const user = {
             firstName: req.body.firstName,
