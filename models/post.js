@@ -14,10 +14,16 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Post.init({
+    title: DataTypes.STRING,
+    description: DataTypes.STRING,
     price: DataTypes.INTEGER,
     picture: DataTypes.STRING,
+    typeOfPlace : DataTypes.STRING,
+    adress: DataTypes.STRING,
+    contact: DataTypes.STRING,
     createdAt: DataTypes.STRING,
-    status: DataTypes.BOOLEAN
+    status: DataTypes.BOOLEAN,
+    isAssured: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Post',
