@@ -12,5 +12,11 @@ node_modules/
 
 .DS_Store
 
-public/post_picture/*
-public/profile_picture/*
+public/post_picture/*.png
+public/post_picture/*.jpg
+public/post_picture/*.jpeg
+
+public/profile_picture/*.png
+public/profile_picture/*.jpg
+public/profile_picture/*.jpeg
+
