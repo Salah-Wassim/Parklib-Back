@@ -8,9 +8,15 @@ const Response = require('../utils/response.util.js');
 require('dotenv').config();
 
 exports.register = (req, res) => {
-    if (req.body.password == null || !req.body.email == null || req.body.lastName == null || req.body.firstName == null) {
+    if (req.body.password == null || req.body.email == null || req.body.lastName == null || req.body.firstName == null) {
         res.status(HttpStatus.NO_CONTENT.code)
             .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+        return;
+    }
+
+    if (req.body.password.length < 8) {
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Password must be at least 8 characters long` ));
         return;
     }
 
@@ -47,7 +53,7 @@ exports.register = (req, res) => {
 }
 
 exports.login = (req, res) => {
-    if (req.body.password == null || !req.body.email == null) {
+    if (req.body.password == null || req.body.email == null) {
         res.status(HttpStatus.NO_CONTENT.code)
             .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
         return;
