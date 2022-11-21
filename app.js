@@ -1,6 +1,7 @@
 import express from "express";
 import * as dotenv from "dotenv";
 import appRouter from "./routes/app.router.js";
+import parkingParticulierRouter from "./routes/parkingParticulier.router.js";
 import bodyParser from "body-parser";
 
 const app = express();
@@ -12,7 +13,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
-app.use('verification',appRouter);
+app.use('verification', appRouter);
+
+app.use('/parking-particulier', parkingParticulierRouter);
 
 app.listen(process.env.PORT,process.env.HOST, () => {
     console.log(`Server is running at http://${process.env.HOST}:${process.env.PORT}`);
