@@ -12,7 +12,7 @@ module.exports = {
          * }], {});
          */
         await queryInterface.bulkInsert(
-            "ParkingParticulier",
+            "ParkingParticuliers",
             [
                 {
                     title: 'Parking Test',
