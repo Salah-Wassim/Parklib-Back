@@ -25,12 +25,12 @@ module.exports = {
         allowNull: false
         },
       lattitude: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.FLOAT,
+        allowNull: true
       },
       longitude: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.FLOAT,
+        allowNull: true
         },
       picture: {
         type: Sequelize.STRING,
@@ -62,8 +62,7 @@ module.exports = {
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
