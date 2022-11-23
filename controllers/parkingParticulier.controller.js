@@ -1,6 +1,4 @@
-const ParkingParticulier = require("../models/ParkingParticulier");
-// const ParkingParticulier = require("../models").ParkingParticulier;
-// import { ParkingParticulier } from "../models";
+const ParkingParticulier = require("../models").ParkingParticulier;
 const constante = require('../utils/constantes.util.js');
 const logger = require('../utils/logger.util.js');
 const HttpStatus = require('../utils/httpStatus.util.js');
