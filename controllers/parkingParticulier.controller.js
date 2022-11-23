@@ -1,22 +1,22 @@
-const ParkingParticulier = require("../models").ParkingParticulier;
+const ParkingParticulierModel = require("../models/parkingParticulier");
+// const ParkingParticulier = require("../models").ParkingParticulier;
 // import { ParkingParticulier } from "../models";
 const constante = require('../utils/constantes.util.js');
 const logger = require('../utils/logger.util.js');
 const HttpStatus = require('../utils/httpStatus.util.js');
 const Response = require('../utils/response.util.js');
-const parkingParticulier = require("../models/parkingParticulier");
 
 
 exports.findAllParkingParticulier = (req, res) => {
     const isActivated = req.query.isActivated ?? true;
 
-    ParkingParticulier.findAll({ where: { isActivated: isActivated }, order: [['createdAt', 'DESC']] })
+    ParkingParticulierModel.findAll({ where: { isActivated: isActivated }, order: [['createdAt', 'DESC']] })
         .then((data) => {
-            const parkingParticuliers = data.map(parkingParticulier => {
+            const parkingParticulierAllList = data.map(parkingParticulier => {
                 return parkingParticulier;
             }) 
             res.status(HttpStatus.OK.code)
-                .send(new Response(HttpStatus.OK.code, HttpStatus.OK.message, `ParkingParticuliers retrieved`, parkingParticuliers));
+                .send(new Response(HttpStatus.OK.code, HttpStatus.OK.message, `ParkingParticuliers retrieved`, parkingParticulierAllList));
         }).catch((err) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
                 .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving parkings`));
@@ -31,7 +31,7 @@ exports.findOneParkingParticulier = (req, res) => {
         return;
     }
 
-    ParkingParticulier.findByPk(id)
+    ParkingParticulierModel.findByPk(id)
         .then(data => {
             
             const parkingParticulier = data ;

@@ -1,6 +1,6 @@
 {
   "name": "parklib",
-  "type": "module",
+  "type": "commonjs",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
