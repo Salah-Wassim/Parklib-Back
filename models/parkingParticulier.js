@@ -14,13 +14,18 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   ParkingParticulier.init({
-    title: DataTypes.STRING,
+    name: DataTypes.STRING,
     address: DataTypes.STRING,
     zipCode: DataTypes.STRING,
     city: DataTypes.STRING,
     lattitude: DataTypes.FLOAT,
     longitude: DataTypes.FLOAT,
     picture: DataTypes.STRING,
+    nbplace: DataTypes.INTEGER,
+    assurance: DataTypes.BOOLEAN,
+    type: DataTypes.STRING,
+    description: DataTypes.STRING,
+    price: DataTypes.FLOAT,
     UserId: {
         type: DataTypes.INTEGER,
         allowNull: false,

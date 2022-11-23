@@ -8,7 +8,7 @@ module.exports = {
         primaryKey: true,
         allowNull: false
       },
-      title: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false
       },
@@ -34,6 +34,26 @@ module.exports = {
         },
       picture: {
         type: Sequelize.STRING,
+        allowNull: false
+      },
+      nbPlace: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      assurance: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      description: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      price: {
+        type: Sequelize.FLOAT,
         allowNull: false
       },
       UserId: {
