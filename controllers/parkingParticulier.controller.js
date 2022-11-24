@@ -5,6 +5,8 @@ const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
 
+const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
+
 exports.findAllParkingParticulier = (req, res) => {
     const isActivated = req.query.isActivated ?? true;
     logger.info(
@@ -97,6 +99,7 @@ exports.addParkingParticulier = (req, res) => {
         );
         return;
     }
+
     const parking = { ...req.body };
 
     logger.info(
@@ -255,9 +258,48 @@ exports.deleteParkingParticulier = (req, res) => {
                     new Response(
                         HttpStatus.INTERNAL_SERVER_ERROR.code,
                         HttpStatus.INTERNAL_SERVER_ERROR.message,
-                        `Some error occurred while deletnig the Parking.`
+                        `Some error occurred while deleting the Parking.`
                     )
                 );
             }
         });
+};
+
+const uploadParkingPicture = async (req, res) => {
+    try {
+        await uploadFile(req, res);
+
+        if (req.file == undefined) {
+            // return res.status(400).send({ message: "Please upload a file!" });
+            return {
+                code: 400,
+                message: "Please upload a file!",
+            };
+        }
+
+        //   res.status(200).send({
+        //     message: "Uploaded the file successfully: " + req.file.originalname,
+        //   });
+        return {
+            code: 200,
+            message: "Uploaded the file successfully: " + req.file.originalname,
+        };
+    } catch (err) {
+        if (err.code == "LIMIT_FILE_SIZE") {
+            // return res.status(500).send({
+            //     message: "File size cannot be larger than 2MB!",
+            // });
+            return {
+                code: 500,
+                message: "File size cannot be larger than 2MB!",
+            };
+        }
+        // res.status(500).send({
+        //     message: `Could not upload the file: ${req.file.originalname}. ${err}`,
+        // });
+        return {
+            code: 500,
+            message: `Could not upload the file: ${req.file.originalname}. ${err}`,
+        };
+    }
 };
