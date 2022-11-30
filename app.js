@@ -44,8 +44,8 @@ app.use('/post_picture', express.static('post_picture'));
  * ROUTES
  */
 
-// Swagger Page
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Swagger Page .  A décommenter si besoin. ligne 48
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
 app.use('/users',authenticateJWT, userRouter);

@@ -25,11 +25,11 @@
     },
     {
       "name": "Users",
-      "description": "Authentication to access service API"
+      "description": "Get all user information"
     },
     {
       "name": "User",
-      "description": "Authentication to access service API"
+      "description": "Get user information"
     }
   ],
   "paths": {
@@ -290,7 +290,12 @@
       }
     },
     "UpdateUser": {
+      "required": ["id"],
       "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
         "firstName": {
           "type": "string",
           "example": "John"
@@ -310,8 +315,12 @@
       }
     },
     "UpdateUserPicture": {
-      "required": ["picture"],
+      "required": ["id","picture"],
       "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
         "firstName": {
           "type": "string",
           "example": "John"
@@ -334,6 +343,7 @@
       }
     },
     "ResetPassword": {
+      "required": ["oldPassword","newPassword"],
       "properties": {
         "oldPassword": {
           "type": "string",
