@@ -87,7 +87,9 @@ exports.findOneParkingParticulierByUser = (req, res) => {
         );
         return;
     }
-    logger.info(`${req.method} ${req.originalUrl}, Fetching all parkings for User #${id}.`);
+    logger.info(
+        `${req.method} ${req.originalUrl}, Fetching all parkings for User #${id}.`
+    );
     ParkingParticulier.findAll({
         where: { userId: id },
         order: [["createdAt", "DESC"]],
@@ -114,7 +116,6 @@ exports.findOneParkingParticulierByUser = (req, res) => {
 };
 
 exports.findActivatedParkingParticulierByParams = (req, res) => {
-
     const zipCode = req.body.zipCode;
     const city = req.body.city;
     const nbPlace = req.body.nbPlace;
@@ -124,20 +125,33 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
 
     let parking = {};
 
-    if (zipCode) parking.zipCode = zipCode;
-    if (city) parking.city = city;
-    if (nbPlace) parking.nbPlace = nbPlace;
-    if (assurance) parking.assurance = assurance;
-    if (type) parking.type = type;
-    if (price) parking.price = price;
+    if (zipCode) {
+        parking.zipCode = zipCode;
+    }
+    if (city) {
+        parking.city = city;
+    }
+    if (nbPlace) {
+        parking.nbPlace = nbPlace;
+    }
+    if (assurance) {
+        parking.assurance = assurance;
+    }
+    if (type) {
+        parking.type = type;
+    }
+    if (price) {
+        parking.price = price;
+    }
     parking.isActivated = true;
 
-    console.log(parking);
+    console.log("Searching : " + parking);
 
-
-    logger.info(`${req.method} ${req.originalUrl}, Fetching all parkings with custom params.`);
+    logger.info(
+        `${req.method} ${req.originalUrl}, Fetching all parkings with custom params.`
+    );
     ParkingParticulier.findAll({
-        where: parking ,
+        where: parking,
         order: [["createdAt", "DESC"]],
     })
         .then((data) => {
