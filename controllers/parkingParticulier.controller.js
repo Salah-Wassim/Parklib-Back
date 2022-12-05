@@ -245,18 +245,42 @@ exports.updateParkingParticulier = (req, res) => {
 
     let parking = {};
 
-    if (name) parking.name = name;
-    if (address) parking.address = address;
-    if (zipCode) parking.zipCode = zipCode;
-    if (city) parking.city = city;
-    if (picture) parking.picture = picture;
-    if (nbPlace) parking.nbPlace = nbPlace;
-    if (assurance) parking.assurance = assurance;
-    if (type) parking.type = type;
-    if (description) parking.description = description;
-    if (price) parking.price = price;
-    if (isActivated) parking.isActivated = isActivated;
-    if (UserId) parking.UserId = UserId;
+    if (name) {
+        parking.name = name;
+    }
+    if (address) {
+        parking.address = address;
+    }
+    if (zipCode) {
+        parking.zipCode = zipCode;
+    }
+    if (city) {
+        parking.city = city;
+    }
+    if (picture) {
+        parking.picture = picture;
+    }
+    if (nbPlace) {
+        parking.nbPlace = nbPlace;
+    }
+    if (assurance) {
+        parking.assurance = assurance;
+    }
+    if (type) {
+        parking.type = type;
+    }
+    if (description) {
+        parking.description = description;
+    }
+    if (price) {
+        parking.price = price;
+    }
+    if (isActivated) {
+        parking.isActivated = isActivated;
+    }
+    if (UserId) {
+        parking.UserId = UserId;
+    }
 
     if (id == null || Object.keys(parking).length === 0) {
         res.status(HttpStatus.NO_CONTENT.code).send(
