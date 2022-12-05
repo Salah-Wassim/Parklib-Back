@@ -21,7 +21,6 @@ module.exports = (sequelize, DataTypes) => {
     typeOfPlace : DataTypes.STRING,
     adress: DataTypes.STRING,
     contact: DataTypes.STRING,
-    createdAt: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
     isAssured: DataTypes.BOOLEAN
   }, {

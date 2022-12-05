@@ -1,15 +1,13 @@
-const Post = require('../models/post').Post;
+const Post  = require('../models').Post;
 
 exports.list_post = (req, res, next) => {
     Post.findAll({
-
-        attributes : ['id', 'title', 'price'],
         order : [
             ['price', 'DESC']
         ]
     
     })
-    .then(data => {
+    .then(data => {     
         res.status(200).json(data);
     })
     .catch(err => console.error(err))
@@ -58,7 +56,7 @@ exports.delete_post = (req, res, next) => {
             id: req.params.id
         }
     })
-    .then(data => {
+    .then(() => {
         res.status(204).json({
             message : 'Annonce supprimée'
         })
@@ -85,7 +83,6 @@ exports.details_post = (req, res, next) => {
 exports.search_post = (req, res, next) => {
     const search = `%${req.params.search}%`;
     Post.findAll({
-        attributes : ['id', 'title', 'price'],
         where : {
             name : {
                 [Op.like] : search
