@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get("/", parkingParticulierController.findAllParkingParticulier);
 router.get("/:id", parkingParticulierController.findOneParkingParticulier);
-router.get("/user/:id", parkingParticulierController.findOneParkingParticulierByUser);
+router.get("/user/:id", parkingParticulierController.findAllParkingParticulierByUser);
 router.post("/add", parkingParticulierController.addParkingParticulier);
 router.delete("/:id", parkingParticulierController.deleteParkingParticulier);
 router.put("/:id", parkingParticulierController.updateParkingParticulier);

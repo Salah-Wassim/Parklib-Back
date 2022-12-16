@@ -5,6 +5,8 @@ const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
 
+const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
+
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
 exports.findAllParkingParticulier = (req, res) => {
@@ -75,7 +77,7 @@ exports.findOneParkingParticulier = (req, res) => {
         });
 };
 
-exports.findOneParkingParticulierByUser = (req, res) => {
+exports.findAllParkingParticulierByUser = (req, res) => {
     const id = req.params.id;
     if (id == null) {
         res.status(HttpStatus.NO_CONTENT.code).send(
@@ -175,7 +177,7 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
         });
 };
 
-exports.addParkingParticulier = (req, res) => {
+exports.addParkingParticulier = async (req, res) => {
     if (
         req.body.name == null ||
         req.body.address == null ||
@@ -205,6 +207,16 @@ exports.addParkingParticulier = (req, res) => {
     logger.info(
         `${req.method} ${req.originalUrl}, Creating new parking particulier.`
     );
+
+    // parking.longitude = await apiGouvAdresseService.getCoordFromStringAddress(
+    //     parking
+    // )[0];
+    // parking.lattitude = await apiGouvAdresseService.getCoordFromStringAddressV2(
+    //     parking
+    // )[1];
+
+
+    // console.log(parking);
 
     ParkingParticulier.create(parking)
         .then((data) => {
