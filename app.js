@@ -6,6 +6,7 @@ const logger = require("./utils/logger.util.js");
 const HttpStatus = require("./utils/httpStatus.util.js");
 const Response = require("./utils/response.util.js");
 
+
 /**
  * SWAGGER
  */
@@ -23,6 +24,7 @@ global.__basedir = __dirname;
 const appRouter = require("./routes/app.router.js");
 const authRouter = require("./routes/auth.router.js");
 const userRouter = require("./routes/user.router.js");
+const bookingRouter = require("./routes/booking.router.js");
 
 /**
  * IMPORTATION DES MIDDLEWARES
@@ -46,6 +48,7 @@ app.use('/post_picture', express.static('post_picture'));
 
 // Swagger Page .  A décommenter si besoin. ligne 48
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
 app.use('/users',authenticateJWT, userRouter);
