@@ -15,8 +15,6 @@ exports.getCoordFromStringAddress = async (parkingParticulier) => {
     axios
         .get(url)
         .then(async (result) => {
-            
-
             let adresses = result.data.features;
             console.log(adresses);
             if (adresses == null) {
@@ -35,7 +33,6 @@ exports.getCoordFromStringAddress = async (parkingParticulier) => {
         .catch((err) => {
             return err
         });
-
 
 };
 

@@ -5,7 +5,7 @@ const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
 
-const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
+// const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
 
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
@@ -45,10 +45,10 @@ exports.findAllParkingParticulier = (req, res) => {
 exports.findOneParkingParticulier = (req, res) => {
     const id = req.params.id;
     if (id == null) {
-        res.status(HttpStatus.NO_CONTENT.code).send(
+        res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
-                HttpStatus.NO_CONTENT.code,
-                HttpStatus.NO_CONTENT.message,
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
                 `Id can not be empty!`
             )
         );
@@ -80,10 +80,10 @@ exports.findOneParkingParticulier = (req, res) => {
 exports.findAllParkingParticulierByUser = (req, res) => {
     const id = req.params.id;
     if (id == null) {
-        res.status(HttpStatus.NO_CONTENT.code).send(
+        res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
-                HttpStatus.NO_CONTENT.code,
-                HttpStatus.NO_CONTENT.message,
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
                 `Id can not be empty!`
             )
         );
@@ -184,6 +184,8 @@ exports.addParkingParticulier = async (req, res) => {
         req.body.zipCode == null ||
         req.body.city == null ||
         req.body.picture == null ||
+        req.body.longitude == null ||
+        req.body.lattitude == null ||
         req.body.nbPlace == null ||
         req.body.assurance == null ||
         req.body.type == null ||
@@ -192,10 +194,10 @@ exports.addParkingParticulier = async (req, res) => {
         req.body.isActivated == null ||
         req.body.UserId == null
     ) {
-        res.status(HttpStatus.NO_CONTENT.code).send(
+        res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
-                HttpStatus.NO_CONTENT.code,
-                HttpStatus.NO_CONTENT.message,
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
                 `Content can not be empty!`
             )
         );
@@ -208,15 +210,6 @@ exports.addParkingParticulier = async (req, res) => {
         `${req.method} ${req.originalUrl}, Creating new parking particulier.`
     );
 
-    // parking.longitude = await apiGouvAdresseService.getCoordFromStringAddress(
-    //     parking
-    // )[0];
-    // parking.lattitude = await apiGouvAdresseService.getCoordFromStringAddressV2(
-    //     parking
-    // )[1];
-
-
-    // console.log(parking);
 
     ParkingParticulier.create(parking)
         .then((data) => {
@@ -295,10 +288,10 @@ exports.updateParkingParticulier = (req, res) => {
     }
 
     if (id == null || Object.keys(parking).length === 0) {
-        res.status(HttpStatus.NO_CONTENT.code).send(
+        res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
-                HttpStatus.NO_CONTENT.code,
-                HttpStatus.NO_CONTENT.message,
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
                 `Content can not be empty!`
             )
         );
