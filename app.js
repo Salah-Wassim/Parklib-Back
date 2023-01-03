@@ -24,7 +24,6 @@ const bookingRouter = require("./routes/booking.router.js");
  * IMPORTATION DES MIDDLEWARES
  */
 const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,6 +40,7 @@ app.use('/post_picture', express.static('post_picture'));
  */
 
 app.use('/parking-particulier', parkingParticulierRouter);
+app.use('/annonce', postRouter);
 
 app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
