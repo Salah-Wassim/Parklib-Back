@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + uniqueSuffix+ext)
     }
 });
-const maxSize =  1024 * 1024;
 const uploadFile = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
@@ -29,7 +28,7 @@ const uploadFile = multer({
         }
     },
     limits: {
-        fileSize: maxSize,//2MB
+        fileSize: constants.MAX_SIZE,//2MB
     }
 });
 
