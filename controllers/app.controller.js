@@ -1,5 +1,5 @@
-import axios from "axios";
-import * as dotenv from "dotenv";
+const axios = require('axios');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const headers = {
 };
 
 
-export const verifyNumber = (req, res) => {
+exports.verifyNumber = (req, res) => {
 
     const phoneNumber = req.body.phone;
     console.log(req.body);
@@ -34,7 +34,7 @@ export const verifyNumber = (req, res) => {
 
 }
 
-export const reportCode = (req, res) => {
+exports.reportCode = (req, res) => {
     const code = req.body.code;
     const phone = req.body.phone;
     const href = req.body.report;
