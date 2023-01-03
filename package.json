@@ -34,8 +34,6 @@
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1",
     "sequelize": "^6.25.3",
-    "swagger-jsdoc": "^6.2.5",
-    "swagger-ui-express": "^4.6.0",
     "util": "^0.12.5",
     "uuid": "^9.0.0"
   },

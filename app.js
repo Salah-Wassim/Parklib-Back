@@ -6,13 +6,7 @@ const logger = require("./utils/logger.util.js");
 const HttpStatus = require("./utils/httpStatus.util.js");
 const Response = require("./utils/response.util.js");
 
-
-/**
- * SWAGGER
- */
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
-
+const parkingParticulierRouter = require("./routes/parkingParticulier.router.js");
 
 require("dotenv").config();
 
@@ -46,8 +40,8 @@ app.use('/post_picture', express.static('post_picture'));
  * ROUTES
  */
 
-// Swagger Page .  A décommenter si besoin. ligne 48
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/parking-particulier', parkingParticulierRouter);
+
 app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
