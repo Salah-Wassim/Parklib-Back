@@ -6,7 +6,6 @@ const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
 
 // const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
-
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
 exports.findAllParkingParticulier = (req, res) => {
