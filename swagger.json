@@ -1,0 +1,495 @@
+{
+  "swagger": "2.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "ParkLib's API",
+    "description": "Parking location API",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization:Bearer",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer"
+    }
+  },
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication to access service API"
+    },
+    {
+      "name": "Users",
+      "description": "Get all user information"
+    },
+    {
+      "name": "User",
+      "description": "Get user information"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Create a new user",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User that we want to create",
+            "schema": {
+              "$ref": "#/definitions/Register"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseAuth"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseError"
+            }
+          }
+        }
+      }
+    },
+    "/auth/": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User that we want to login",
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseAuth"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["Users"],
+        "summary": "Get all users",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUsers"
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of user that we want to find",
+          "type": "integer"
+        }
+      ],
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["User"],
+        "summary": "Get all users",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["User"],
+        "summary": "Update user",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User with new values of properties",
+            "schema": {
+              "$ref": "#/definitions/UpdateUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["User"],
+        "summary": "Delete user",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/reset-password": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of user that we want to find",
+          "type": "integer"
+        }
+      ],
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["User"],
+        "summary": "Update user",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "New password",
+            "schema": {
+              "$ref": "#/definitions/ResetPassword"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/profile": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of user that we want to find",
+          "type": "integer"
+        }
+      ],
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": ["User"],
+        "summary": "Update picture of user",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "formData",
+            "description": "User with new values of properties",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserPicture"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "email": {
+          "type": "string",
+            "example": "johndoe@example.com"
+        },
+        "address": {
+          "type": "string",
+          "example": "1234 Main St"
+        },
+        "phone": {
+          "type": "string",
+          "example": "123-456-7890"
+        },
+        "picture": {
+          "type": "string",
+          "example": "https://example.com/picture.jpg"
+        }
+      }
+    },
+    "UpdateUser": {
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "address": {
+          "type": "string",
+          "example": "1234 Main St"
+        },
+        "phone": {
+          "type": "string",
+          "example": "123-456-7890"
+        }
+      }
+    },
+    "UpdateUserPicture": {
+      "required": ["id","picture"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "address": {
+          "type": "string",
+          "example": "1234 Main St"
+        },
+        "picture": {
+          "type": "file"
+        },
+        "phone": {
+          "type": "string",
+          "example": "123-456-7890"
+        }
+      }
+    },
+    "ResetPassword": {
+      "required": ["oldPassword","newPassword"],
+      "properties": {
+        "oldPassword": {
+          "type": "string",
+          "example": "password"
+        },
+        "newPassword": {
+          "type": "string",
+          "example": "password1"
+        }
+      }
+    },
+    "Register": {
+      "required": ["firstName", "lastName", "email","password"],
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "boolean",
+          "example": "Doe"
+        },
+        "email": {
+          "type": "string",
+          "example": "johndoe@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "password"
+        }
+      }
+    },
+    "Login": {
+      "required": ["email","password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "johndoe@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "password"
+        }
+      }
+    },
+    "ResponseAuth": {
+      "properties": {
+        "timeStamp": {
+          "type": "object",
+          "description": "Timestamp of the response",
+          "example": "11/17/2022"
+        },
+        "statusCode": {
+          "type": "number",
+          "example": 200
+        },
+        "httpStatus": {
+          "type": "string",
+          "example": "OK"
+        },
+        "message": {
+          "type": "string",
+          "example": "Success"
+        },
+        "data": {
+          "properties": {
+            "accesToken": {
+              "type": "string",
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.="
+            }
+          }
+        }
+      }
+    },
+    "ResponseUsers": {
+      "properties": {
+        "timeStamp": {
+          "type": "object",
+          "description": "Timestamp of the response",
+          "example": "11/17/2022"
+        },
+        "statusCode": {
+          "type": "number",
+          "example": 200
+        },
+        "httpStatus": {
+          "type": "string",
+          "example": "OK"
+        },
+        "message": {
+          "type": "string",
+          "example": "Success"
+        },
+        "data": {
+          "type": "array",
+          "$ref": "#/definitions/User"
+        }
+      }
+    },
+    "ResponseUser": {
+      "properties": {
+        "timeStamp": {
+          "type": "object",
+          "description": "Timestamp of the response",
+          "example": "11/17/2022"
+        },
+        "statusCode": {
+          "type": "number",
+          "example": 200
+        },
+        "httpStatus": {
+          "type": "string",
+          "example": "OK"
+        },
+        "message": {
+          "type": "string",
+          "example": "Success"
+        },
+        "data": {
+          "$ref": "#/definitions/User"
+        }
+      }
+    },
+    "ResponseError": {
+      "properties": {
+        "timeStamp": {
+          "type": "object",
+          "description": "Timestamp of the response",
+          "example": "11/17/2022"
+        },
+        "statusCode": {
+          "type": "number",
+          "example": 400
+        },
+        "httpStatus": {
+          "type": "string",
+          "example": "Bad Request"
+        },
+        "message": {
+          "type": "string",
+          "example": "Bad Request"
+        }
+      }
+    }
+  },
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"]
+}
