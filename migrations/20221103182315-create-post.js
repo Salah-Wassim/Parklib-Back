@@ -2,7 +2,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Posts', {
-      id: {
+      post_id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
@@ -36,6 +36,10 @@ module.exports = {
       },
       isAssured: {
         type: Sequelize.BOOLEAN
+      },
+      parkingParticulier_id: {
+        type: Sequelize.INTEGER,
+        defaultValue: true
       },
       createdAt: {
         allowNull: false,

@@ -2,7 +2,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('ParkingParticuliers', {
-      id: {
+      parkingParticulier_id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -56,9 +56,9 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false
       },
-      UserId: {
+      user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        defaultValue: true
       },
       isActivated: {
         type: Sequelize.BOOLEAN,

@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Post.belongsTo(models.ParkingParticulier, {
+        foreignKey: 'parkingParticulier_id'
+      });
+      Post.belongsTo(models.Booking)
     }
   };
   Post.init({
@@ -22,7 +26,11 @@ module.exports = (sequelize, DataTypes) => {
     adress: DataTypes.STRING,
     contact: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
-    isAssured: DataTypes.BOOLEAN
+    isAssured: DataTypes.BOOLEAN,
+    parkingParticulier_id:{
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }
   }, {
     sequelize,
     modelName: 'Post',

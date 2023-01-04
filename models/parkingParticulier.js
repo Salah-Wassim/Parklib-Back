@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      ParkingParticulier.belongsTo(models.User, {
+        foreignKey: 'user_id'
+      });
+      ParkingParticulier.hasOne(models.Post);
     }
   };
   ParkingParticulier.init({
@@ -27,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING,
     price: DataTypes.FLOAT,
     isActivated: DataTypes.BOOLEAN,
-    UserId: {
+    user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
