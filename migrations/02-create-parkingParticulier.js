@@ -1,8 +1,9 @@
 'use strict';
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('ParkingParticuliers', {
-      parkingParticulier_id: {
+      id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -18,7 +19,7 @@ module.exports = {
       },
       zipCode: {
         type: Sequelize.STRING,
-        allowNull: false ,
+        allowNull: false
       },
       city: {
         type: Sequelize.STRING,
@@ -49,16 +50,20 @@ module.exports = {
         allowNull: false
       },
       description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false
       },
       price: {
         type: Sequelize.FLOAT,
         allowNull: false
       },
-      user_id: {
+      fk_user_id: {
         type: Sequelize.INTEGER,
-        defaultValue: true
+        allowNull:false,
+        references: {
+          model: 'Users',
+          key:'id'
+        }
       },
       isActivated: {
         type: Sequelize.BOOLEAN,

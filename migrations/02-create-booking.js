@@ -3,13 +3,10 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Bookings', {
-      booking_id: {
+      id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
-      },
-      post_id: {
         type: Sequelize.INTEGER
       },
       start_date: {
@@ -18,9 +15,19 @@ module.exports = {
       end_date: {
         type: Sequelize.DATE
       },
-      user_id: {
+      fk_owner_id: {
         type: Sequelize.INTEGER,
-        defaultValue: true
+        references:{
+          model: 'Users',
+          key: 'id'
+        }
+      },
+      fk_tenant_id: {
+        type: Sequelize.INTEGER,
+        references:{
+          model: 'Users',
+          key: 'id'
+        }
       },
       createdAt: {
         allowNull: false,

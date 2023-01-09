@@ -12,9 +12,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Post.belongsTo(models.ParkingParticulier, {
-        foreignKey: 'parkingParticulier_id'
+        foreignKey: 'fk_parkingParticulier_id',
+        constraints: false
       });
-      Post.belongsTo(models.Booking)
+      Post.belongsTo(models.Booking, {
+        foreignKey: 'fk_booking_id',
+        constraints:false
+      })
     }
   };
   Post.init({
@@ -27,7 +31,11 @@ module.exports = (sequelize, DataTypes) => {
     contact: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
     isAssured: DataTypes.BOOLEAN,
-    parkingParticulier_id:{
+    fk_parkingParticulier_id:{
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    fk_booking_id:{
       type: DataTypes.INTEGER,
       allowNull: false,
     }
