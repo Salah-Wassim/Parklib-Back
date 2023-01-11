@@ -11,13 +11,13 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Booking.belongsTo(models.User);
+      Booking.hasOne(models.Post);
     }
   }
   Booking.init({
-    post_id: DataTypes.INTEGER,
     start_date: DataTypes.DATE,
     end_date: DataTypes.DATE,
-    user_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Booking',

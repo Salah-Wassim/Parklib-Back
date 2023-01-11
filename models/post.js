@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Post.hasOne(models.ParkingParticulier);
+      Post.belongsTo(models.Booking);
     }
   };
   Post.init({
@@ -22,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     adress: DataTypes.STRING,
     contact: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
-    isAssured: DataTypes.BOOLEAN
+    isAssured: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Post',

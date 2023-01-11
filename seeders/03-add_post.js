@@ -11,21 +11,22 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-    await queryInterface.bulkInsert('Posts', [
-      {
-        title : "mon Super Parking",
-        description : "Super parking",
-        price : 30,
-        picture : '',
-        typeOfPlace: 'souterrain',
-        adress: '10 rue du chateaux',
-        contact : 'email',
-        status: '',
-        isAssured: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ])
+   await queryInterface.bulkInsert('Posts', [
+    {
+      title : "mon Super Parking",
+      description : "Super parking",
+      price : 30,
+      picture : '',
+      typeOfPlace: 'souterrain',
+      adress: '10 rue du chateaux',
+      contact : 'email',
+      status: '',
+      isAssured: true,
+      ParkingParticulierId:1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+   ])
   },
 
   down: async (queryInterface, Sequelize) => {

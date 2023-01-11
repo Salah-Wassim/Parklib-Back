@@ -9,18 +9,33 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      post_id: {
-        type: Sequelize.INTEGER
-      },
       start_date: {
         type: Sequelize.DATE
       },
       end_date: {
         type: Sequelize.DATE
       },
-      user_id: {
+      OwnerId: {
         type: Sequelize.INTEGER,
-        defaultValue: true
+        references:{
+          model: 'Users',
+          key: 'id'
+        }
+      },
+      TenantId: {
+        type: Sequelize.INTEGER,
+        references:{
+          model: 'Users',
+          key: 'id'
+        }
+      },
+      PostId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references:{
+          model:'Posts',
+          key:'id'
+        }
       },
       createdAt: {
         allowNull: false,
