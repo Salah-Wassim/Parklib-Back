@@ -15,18 +15,26 @@ module.exports = {
       end_date: {
         type: Sequelize.DATE
       },
-      fk_owner_id: {
+      OwnerId: {
         type: Sequelize.INTEGER,
         references:{
           model: 'Users',
           key: 'id'
         }
       },
-      fk_tenant_id: {
+      TenantId: {
         type: Sequelize.INTEGER,
         references:{
           model: 'Users',
           key: 'id'
+        }
+      },
+      PostId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references:{
+          model:'Posts',
+          key:'id'
         }
       },
       createdAt: {

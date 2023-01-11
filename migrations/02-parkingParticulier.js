@@ -26,11 +26,11 @@ module.exports = {
         allowNull: false
         },
       lattitude: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.REAL,
         allowNull: true
       },
       longitude: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.REAL,
         allowNull: true
         },
       picture: {
@@ -57,7 +57,7 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false
       },
-      fk_user_id: {
+      UserId: {
         type: Sequelize.INTEGER,
         allowNull:false,
         references: {

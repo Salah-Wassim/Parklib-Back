@@ -20,7 +20,7 @@ module.exports = {
                 lattitude: 0.0,
                 longitude: 0.0,
                 picture: "MaSuperImage",
-                fk_user_id: 1,
+                UserId: 1,
                 nbPlace: 1,
                 assurance: true,
                 type: "INTERIEUR",

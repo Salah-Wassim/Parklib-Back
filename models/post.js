@@ -11,14 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Post.belongsTo(models.ParkingParticulier, {
-        foreignKey: 'fk_parkingParticulier_id',
-        constraints: false
-      });
-      Post.belongsTo(models.Booking, {
-        foreignKey: 'fk_booking_id',
-        constraints:false
-      })
+      Post.hasOne(models.ParkingParticulier);
+      Post.belongsTo(models.Booking);
     }
   };
   Post.init({
@@ -31,14 +25,6 @@ module.exports = (sequelize, DataTypes) => {
     contact: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
     isAssured: DataTypes.BOOLEAN,
-    fk_parkingParticulier_id:{
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    fk_booking_id:{
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    }
   }, {
     sequelize,
     modelName: 'Post',

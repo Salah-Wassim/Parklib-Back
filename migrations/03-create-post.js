@@ -45,19 +45,11 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false
       },
-      fk_parkingParticulier_id: {
+      ParkingParticulierId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references:{
           model: 'ParkingParticuliers',
-          key:'id'
-        }
-      },
-      fk_booking_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references:{
-          model:'Bookings',
           key:'id'
         }
       },

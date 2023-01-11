@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       ParkingParticulier.belongsTo(models.User);
-      ParkingParticulier.hasOne(models.Post);
+      ParkingParticulier.belongsTo(models.Post);
     }
   };
   ParkingParticulier.init({
@@ -29,10 +29,6 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING,
     price: DataTypes.FLOAT,
     isActivated: DataTypes.BOOLEAN,
-    fk_user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
   }, {
     sequelize,
     modelName: 'ParkingParticulier',

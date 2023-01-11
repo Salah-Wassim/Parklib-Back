@@ -13,9 +13,9 @@ module.exports = {
     */
     await queryInterface.bulkInsert('Users', [
       {
-        firstname: "John",
-        lastname:"Doe",
-        password:'ndionddz',
+        firstName:"John",
+        lastName:"Doe",
+        password:'*******',
         phone:"0654852514",
         picture: "image1",
         address: "10 rue du chateau",
@@ -25,9 +25,9 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        firstname: "Cecile",
-        lastname:"Ansieux",
-        password:'nfezofezifz',
+        firstName: "Cecile",
+        lastName:"Ansieux",
+        password:'*******',
         phone:"0635421598",
         picture: "maSuperImage",
         address: "56 rue la mottepiqué",
