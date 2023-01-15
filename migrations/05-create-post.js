@@ -47,6 +47,7 @@ module.exports = {
       },
       ParkingParticulierId: {
         type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
         allowNull: false,
         references:{
           model: 'ParkingParticuliers',

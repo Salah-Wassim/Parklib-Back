@@ -1,40 +1,30 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Bookings', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('RoleUsers', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      start_date: {
-        type: Sequelize.DATE
-      },
-      end_date: {
-        type: Sequelize.DATE
-      },
-      OwnerId: {
+      UserId:{
         type: Sequelize.INTEGER,
-        references:{
+        onDelete: "CASCADE",
+        allowNull: false,
+        references: {
           model: 'Users',
           key: 'id'
         }
       },
-      TenantId: {
+      RoleId:{
         type: Sequelize.INTEGER,
-        references:{
-          model: 'Users',
+        onDelete: "CASCADE",
+        allowNull: false,
+        references: {
+          model: 'Roles',
           key: 'id'
-        }
-      },
-      PostId: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references:{
-          model:'Posts',
-          key:'id'
         }
       },
       createdAt: {
@@ -47,7 +37,7 @@ module.exports = {
       }
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Bookings');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('RoleUsers');
   }
 };

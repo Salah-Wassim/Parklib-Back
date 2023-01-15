@@ -11,15 +11,18 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-   await queryInterface.bulkInsert([
-    {
-      start_date: "2023-01-11 20:42:13",
-      end_date: "2023-02-10 20:42:13",
-      TenantId: 1,
-      OwnerId:2,
-      PostId:1
-    }
-   ])
+  //  await queryInterface.bulkInsert('Roles', [
+  //   {
+  //     title: "Locataire",
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //   },
+  //   {
+  //     title: "Bailleur",
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //   },
+  //  ])
   },
 
   down: async (queryInterface, Sequelize) => {
