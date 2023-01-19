@@ -15,6 +15,7 @@ module.exports = {
     {
       start_date: new Date(),
       end_date: null,
+      isValidated: false,
       PostId:1,
       UserId:2,
       createdAt: new Date(),

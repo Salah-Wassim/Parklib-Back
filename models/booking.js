@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   Booking.init({
     start_date: DataTypes.DATE,
     end_date: DataTypes.DATE,
+    isValidated: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Booking',

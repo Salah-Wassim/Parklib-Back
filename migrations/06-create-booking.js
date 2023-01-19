@@ -17,6 +17,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE
       },
+      isValidated: {
+        type: Sequelize.BOOLEAN,
+        allowNull:false,
+      },
       PostId: {
         type: Sequelize.INTEGER,
         onDelete: "CASCADE",

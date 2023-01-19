@@ -11,18 +11,18 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-  //  await queryInterface.bulkInsert('Roles', [
-  //   {
-  //     title: "Locataire",
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //   },
-  //   {
-  //     title: "Bailleur",
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //   },
-  //  ])
+   await queryInterface.bulkInsert('Roles', [
+    {
+      title: "Locataire",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      title: "Bailleur",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+   ])
   },
 
   down: async (queryInterface, Sequelize) => {
