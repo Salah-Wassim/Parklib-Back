@@ -11,21 +11,22 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-   await queryInterface.bulkInsert('Posts', [
+   await queryInterface.bulkInsert('ValidationStatuses', [
     {
-      title : "mon Super Parking",
-      description : "Super parking",
-      price : 30,
-      picture : '',
-      typeOfPlace: 'souterrain',
-      adress: '10 rue du chateaux',
-      contact : 'email',
-      status: '',
-      isAssured: true,
-      ParkingParticulierId:1,
+      name: "Brouillon",
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     },
+    {
+      name: "En attente de modération",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      name: "Validé",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
    ])
   },
 

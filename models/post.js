@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Post.hasOne(models.ParkingParticulier);
       Post.belongsTo(models.Booking);
+      Post.hasMany(models.Picture);
+      Post.hasOne(models.ValidationStatus);
     }
   };
   Post.init({

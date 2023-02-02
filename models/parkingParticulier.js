@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       ParkingParticulier.belongsTo(models.User);
       ParkingParticulier.belongsTo(models.Post);
+      ParkingParticulier.hasMany(models.Favorite);      
     }
   };
   ParkingParticulier.init({
