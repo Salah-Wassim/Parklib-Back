@@ -20,7 +20,7 @@ module.exports = {
       typeOfPlace: 'souterrain',
       adress: '10 rue du chateaux',
       contact : 'email',
-      status: '',
+      status: 1,
       isAssured: true,
       ParkingParticulierId:1,
       createdAt: new Date(),

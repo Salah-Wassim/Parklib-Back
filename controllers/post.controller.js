@@ -1,6 +1,6 @@
 const Post  = require('../models').Post;
 
-exports.list_post = (req, res, next) => {
+exports.list_post = (req, res) => {
     Post.findAll({
         order : [
             ['price', 'DESC']
