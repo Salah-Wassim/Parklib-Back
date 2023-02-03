@@ -54,6 +54,15 @@ module.exports = {
           key:'id'
         }
       },
+      ValidationStatusId: {
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        allowNull: false,
+        references:{
+          model: 'ValidationStatuses',
+          key:'id'
+        }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

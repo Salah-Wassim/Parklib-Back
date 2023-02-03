@@ -11,12 +11,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.hasMany(models.ParkingParticulier)
-      User.hasMany(models.RoleUser)
+      User.hasMany(models.ParkingParticulier);
+      User.hasMany(models.RoleUser);
       User.belongsToMany(models.Role, {
         through: models.RoleUser
-      })
-      User.hasMany(models.Booking)
+      });
+      User.hasMany(models.Booking);
+      User.hasMany(models.Comment);
+      User.hasMany(models.Favorite)
     }
   };
   User.init({
