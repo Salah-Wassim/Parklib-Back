@@ -9,10 +9,6 @@ module.exports = {
         primaryKey: true,
         allowNull: false
       },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
       address: {
         type: Sequelize.STRING,
         allowNull: false
@@ -32,30 +28,6 @@ module.exports = {
       longitude: {
         type: Sequelize.REAL,
         allowNull: true
-        },
-      picture: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      nbPlace: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      assurance: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false
-      },
-      type: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      description: {
-        type: Sequelize.TEXT,
-        allowNull: false
-      },
-      price: {
-        type: Sequelize.FLOAT,
-        allowNull: false
       },
       UserId: {
         type: Sequelize.INTEGER,

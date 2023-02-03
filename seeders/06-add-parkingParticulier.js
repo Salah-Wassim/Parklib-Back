@@ -13,19 +13,12 @@ module.exports = {
          */
         await queryInterface.bulkInsert('ParkingParticuliers', [
             {
-                name: "Parking Test 01",
                 address: "15 rue des Moutons",
                 zipCode: "33000",
                 city: "Bordeaux",
                 lattitude: 0.0,
                 longitude: 0.0,
-                picture: "MaSuperImage",
                 UserId: 1,
-                nbPlace: 1,
-                assurance: true,
-                type: "INTERIEUR",
-                description: "Une description de base, ect...",
-                price: 20.0,
                 isActivated: true,
                 createdAt: new Date(),
                 updatedAt: new Date(),

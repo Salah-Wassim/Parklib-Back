@@ -21,25 +21,13 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      picture: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
       typeOfPlace:{
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      adress:{
         type: Sequelize.STRING,
         allowNull: false
       },
       contact: {
         type: Sequelize.STRING,
         allowNull: false
-      },
-      status: {
-        type: Sequelize.BOOLEAN,
-        allowNull: true
       },
       isAssured: {
         type: Sequelize.BOOLEAN,
