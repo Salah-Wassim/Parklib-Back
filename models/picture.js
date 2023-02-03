@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Picture.hasOne(models.Post);
+      Picture.belongsTo(models.Post);
     }
   };
   Picture.init({

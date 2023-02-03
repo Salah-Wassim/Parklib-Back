@@ -16,7 +16,6 @@ module.exports = {
       title : "mon Super Parking",
       description : "Super parking",
       price : 30,
-      picture : '',
       typeOfPlace: 'souterrain',
       adress: '10 rue du chateaux',
       contact : 'email',

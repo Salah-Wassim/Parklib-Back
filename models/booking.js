@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Booking.belongsTo(models.User);
-      Booking.hasOne(models.Post);
+      Booking.belongsTo(models.Post);
     }
   }
   Booking.init({
