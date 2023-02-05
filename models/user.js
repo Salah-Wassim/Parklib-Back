@@ -18,6 +18,9 @@ module.exports = (sequelize, DataTypes) => {
       });
       User.hasMany(models.Booking);
       User.hasMany(models.Comment);
+      User.hasMany(models.Comment, {
+        foreignKey: 'AuthorId'
+      });
       User.hasMany(models.Favorite)
     }
   };

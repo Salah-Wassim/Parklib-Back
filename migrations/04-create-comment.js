@@ -23,6 +23,15 @@ module.exports = {
           key:'id'
         }
       },
+      AuthorId: {
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        allowNull:false,
+        references: {
+          model: 'Users',
+          key:'id'
+        }
+      },
       ValidationStatusId: {
         type: Sequelize.INTEGER,
         onDelete: "CASCADE",

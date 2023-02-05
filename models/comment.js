@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Comment.hasOne(models.User);
-      Comment.hasOne(models.ValidationStatus);
+      Comment.belongsTo(models.User);
+      Comment.belongsTo(models.ValidationStatus);
     }
   };
   Comment.init({
