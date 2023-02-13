@@ -28,8 +28,8 @@ exports.findOneUser = (req, res) => {
     logger.info(`${req.method} ${req.originalUrl}, Fetching user.`);
     const id = req.params.id;
     if (id==null) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
@@ -67,8 +67,8 @@ exports.updateUser = (req, res) => {
     if(address) user.address = address;
 
     if (id==null || Object.keys(user).length===0) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
@@ -77,8 +77,8 @@ exports.updateUser = (req, res) => {
     User.update(user, {where: {id: id}})
         .then(response => {
             if (response[0] === 0) {
-                res.status(HttpStatus.OK.code)
-                    .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Cannot update account with id=${id}. Maybe User was not found!`));
+                res.status(HttpStatus.NO_CONTENT.code)
+                    .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Cannot update account with id=${id}. Maybe User was not found!`));
                 return;
             }
             User.findByPk(id).then(data=>{
@@ -116,8 +116,8 @@ exports.updateProfilePicture = (req, res) => {
     if(address) user.address = address;
 
     if ((id==null && picture== null) || Object.keys(user).length===0) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
@@ -126,8 +126,8 @@ exports.updateProfilePicture = (req, res) => {
     User.update(user, {where: {id: id}})
         .then(response => {
             if (response[0] === 0) {
-                res.status(HttpStatus.OK.code)
-                    .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Cannot update account with id=${id}. Maybe account was not found or req.body is empty!`));
+                res.status(HttpStatus.NO_CONTENT.code)
+                    .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Cannot update account with id=${id}. Maybe account was not found or req.body is empty!`));
                 return;
             }
             User.findByPk(id).then(data=>{
@@ -155,8 +155,8 @@ exports.updatePassword = (req, res) => {
     const newPassword = req.body.newPassword??null;
 
     if (id==null || oldPassword==null || newPassword==null) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
@@ -166,8 +166,8 @@ exports.updatePassword = (req, res) => {
         .then(data => {
             bcrypt.compare(oldPassword, data.password, (err, result)=> {
                 if (!result){
-                    res.status(HttpStatus.OK.code)
-                        .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Old password is incorrect!`));
+                    res.status(HttpStatus.NO_CONTENT.code)
+                        .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Old password is incorrect!`));
                     return;
                 }
 
@@ -178,16 +178,16 @@ exports.updatePassword = (req, res) => {
                     }
 
                     if (newPassword === oldPassword) {
-                        res.status(HttpStatus.OK.code)
-                            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`New password must be different from old password!`));
+                        res.status(HttpStatus.BAD_REQUEST.code)
+                            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`New password must be different from old password!`));
                         return;
                     }
 
                     User.update({password: hash}, {where: {id: id}})
                         .then(response => {
                             if (response[0] === 0) {
-                                res.status(HttpStatus.OK.code)
-                                    .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Cannot update account with id=${id}. Maybe account was not found or req.body is empty!`));
+                                res.status(HttpStatus.NO_CONTENT.code)
+                                    .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Cannot update account with id=${id}. Maybe account was not found or req.body is empty!`));
                                 return;
                             }
                             User.findByPk(id).then(data=>{
