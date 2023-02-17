@@ -1,3 +1,4 @@
+const ParkingParticulier = require('../models').ParkingParticulier;
 const Post  = require('../models').Post;
 
 exports.list_post = (req, res, next) => {
@@ -5,7 +6,27 @@ exports.list_post = (req, res, next) => {
         order : [
             ['price', 'DESC']
         ]
-    
+
+    })
+    .then(data => {     
+        res.status(200).json(data);
+    })
+    .catch(err => console.error(err))
+}
+
+exports.list_post_by_parkingParticulier = (req, res, next) => {
+    Post.findAll({
+        order : [
+            ['price', 'DESC']
+        ],
+        include: [
+            {
+                model: ParkingParticulier,
+                where: {
+                    id: req.params.id
+                }
+            }
+        ]
     })
     .then(data => {     
         res.status(200).json(data);

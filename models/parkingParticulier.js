@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       ParkingParticulier.belongsTo(models.User);
-      ParkingParticulier.belongsTo(models.Post);
+      ParkingParticulier.hasOne(models.Post);
       ParkingParticulier.hasMany(models.Favorite);      
     }
   };
