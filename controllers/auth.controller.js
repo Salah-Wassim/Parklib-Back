@@ -10,13 +10,13 @@ require('dotenv').config();
 exports.register = (req, res) => {
     if (req.body.password == null || req.body.email == null || req.body.lastName == null || req.body.firstName == null) {
         res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
     if (req.body.password.length < 8) {
         res.status(HttpStatus.BAD_REQUEST.code)
-            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Password must be at least 8 characters long` ));
+            .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`Password must be at least 8 characters long` ));
         return;
     }
 
@@ -43,7 +43,7 @@ exports.register = (req, res) => {
             .catch (error => {
                 if (error.name === 'SequelizeUniqueConstraintError') {
                     res.status(HttpStatus.FORBIDDEN.code)
-                        .send(new Response(HttpStatus.FORBIDDEN.code,HttpStatus.FORBIDDEN.message,`Account already exists` ));
+                        .send(new Response(HttpStatus.CONFLICT.code,HttpStatus.CONFLICT.message,`Account already exists` ));
                 } else {
                     res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
                         .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while creating the account.`));
@@ -55,7 +55,7 @@ exports.register = (req, res) => {
 exports.login = (req, res) => {
     if (req.body.password == null || req.body.email == null) {
         res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
@@ -64,7 +64,7 @@ exports.login = (req, res) => {
         .then(user => {
             if (user===null) {
                 res.status(HttpStatus.NOT_FOUND.code)
-                    .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message,`email or password incorrect`));
+                    .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`email or password incorrect`));
                 return;
             }
 
@@ -82,7 +82,7 @@ exports.login = (req, res) => {
                 }
                 else {
                     res.status(HttpStatus.NOT_FOUND.code)
-                        .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message,`email or password incorrect`));
+                        .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`email or password incorrect`));
                 }
             })
 
