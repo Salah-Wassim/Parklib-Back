@@ -8,13 +8,19 @@ const Response = require('../utils/response.util.js');
 exports.findAllBooking = (req, res) => {
     Booking.findAll()
     .then(data =>{
+        if(data){
             res.status(HttpStatus.OK.code)
-               .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
-        })
-        .catch(err => {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-               .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
-        })
+            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
+        }
+        else{
+            res.status(HttpStatus.NOT_FOUND.code)
+            .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message));
+        }
+    })    
+    .catch(err => {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
+    })
 }
 
 exports.findOneBooking = (req, res) => {
@@ -64,8 +70,8 @@ exports.createBooking = (req, res) => {
 
     .catch (error => {
         if (error.name === 'SequelizeUniqueConstraintError') {
-            res.status(HttpStatus.FORBIDDEN.code)
-                .send(new Response(HttpStatus.FORBIDDEN.code,HttpStatus.FORBIDDEN.message,`Booking already exists` ));
+            res.status(HttpStatus.CONFLICT.code)
+                .send(new Response(HttpStatus.CONFLICT.code,HttpStatus.CONFLICT.message,`Booking already exists` ));
         } else {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
                 .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while creating the account`, error));
@@ -83,8 +89,8 @@ exports.deleteBooking = (req, res) => {
     })
     .then(data => {
         if(data){
-            res.status(HttpStatus.DELETE.code)
-                .send(new Response(HttpStatus.DELETE.code,HttpStatus.DELETE.message, `Booking has been removed`));
+            res.status(HttpStatus.NO_CONTENT.code)
+                .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message, `Booking has been removed`));
         } else{
             res.status(HttpStatus.NOT_FOUND.code)
             .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message, `Booking not found`));
