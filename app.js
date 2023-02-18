@@ -19,7 +19,7 @@ const appRouter = require("./routes/app.router.js");
 const authRouter = require("./routes/auth.router.js");
 const userRouter = require("./routes/user.router.js");
 const bookingRouter = require("./routes/booking.router.js");
-const postRouter = require("./routes/post.route.js")
+const postRouter = require("./routes/post.router.js")
 
 /**
  * IMPORTATION DES MIDDLEWARES
