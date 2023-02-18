@@ -13,6 +13,7 @@ router.post("/add", parkingParticulierController.addParkingParticulier);
 router.delete("/:id", parkingParticulierController.deleteParkingParticulier);
 router.put("/:id", parkingParticulierController.updateParkingParticulier);
 router.post("/search", parkingParticulierController.findActivatedParkingParticulierByParams);
+router.put('/:id/restore', parkingParticulierController.restoreParkingDeleted)
 
 // export default router;
 module.exports = router;

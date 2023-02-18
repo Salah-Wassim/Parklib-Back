@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     isActivated: DataTypes.BOOLEAN,
   }, {
     sequelize,
+    paranoid: true,
     modelName: 'ParkingParticulier',
   });
   return ParkingParticulier;

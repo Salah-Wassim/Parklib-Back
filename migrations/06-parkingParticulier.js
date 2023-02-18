@@ -40,7 +40,7 @@ module.exports = {
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
-        allowNull: false
+        allowNull: true
       },
       createdAt: {
         allowNull: false,
@@ -48,6 +48,10 @@ module.exports = {
       },
       updatedAt: {
         allowNull: false,
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       }
     });

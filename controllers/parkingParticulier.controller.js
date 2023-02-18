@@ -21,14 +21,25 @@ exports.findAllParkingParticulier = (req, res) => {
             const parkingParticulierAllList = data.map((parking) => {
                 return parking;
             });
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `ParkingParticuliers retrieved`,
-                    parkingParticulierAllList
-                )
-            );
+            if(data){
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `ParkingParticuliers retrieved`,
+                        parkingParticulierAllList
+                    )
+                );
+            }
+            else{
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        `ParkingParticuliers not found`,
+                    )
+                );
+            }
         })
         .catch((err) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -56,14 +67,25 @@ exports.findOneParkingParticulier = (req, res) => {
     logger.info(`${req.method} ${req.originalUrl}, Fetching parking #${id}.`);
     ParkingParticulier.findByPk(id)
         .then((data) => {
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `Parking retrieved !`,
-                    data
-                )
-            );
+            if(data){
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `Parking retrieved !`,
+                        data
+                    )
+                );
+            }
+            else{
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        `Parking not found !`,
+                    )
+                );
+            }
         })
         .catch((err) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -96,14 +118,26 @@ exports.findAllParkingParticulierByUser = (req, res) => {
         order: [["createdAt", "DESC"]],
     })
         .then((data) => {
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `Parkings retrieved !`,
-                    data
-                )
-            );
+            if(data){
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `Parkings retrieved !`,
+                        data
+                    )
+                );
+            }
+            else{
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        `Parkings not found !`,
+                        data
+                    )
+                );
+            }
         })
         .catch((err) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -119,10 +153,7 @@ exports.findAllParkingParticulierByUser = (req, res) => {
 exports.findActivatedParkingParticulierByParams = (req, res) => {
     const zipCode = req.body.zipCode;
     const city = req.body.city;
-    const nbPlace = req.body.nbPlace;
-    const assurance = req.body.assurance;
-    const type = req.body.type;
-    const price = req.body.price;
+    const adress = req.body.address;
 
     let parking = {};
 
@@ -132,17 +163,8 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
     if (city) {
         parking.city = city;
     }
-    if (nbPlace) {
-        parking.nbPlace = nbPlace;
-    }
-    if (assurance) {
-        parking.assurance = assurance;
-    }
-    if (type) {
-        parking.type = type;
-    }
-    if (price) {
-        parking.price = price;
+    if(adress){
+        parking.adress = adress
     }
     parking.isActivated = true;
 
@@ -156,14 +178,25 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
         order: [["createdAt", "DESC"]],
     })
         .then((data) => {
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `Parkings retrieved !`,
-                    data
-                )
-            );
+            if(data){
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `Parkings retrieved !`,
+                        data
+                    )
+                );
+            }
+            else{
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        `Parkings not found !`,
+                    )
+                );
+            }
         })
         .catch((err) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -178,20 +211,9 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
 
 exports.addParkingParticulier = async (req, res) => {
     if (
-        req.body.name == null ||
-        req.body.address == null ||
-        req.body.zipCode == null ||
-        req.body.city == null ||
-        req.body.picture == null ||
-        req.body.longitude == null ||
-        req.body.lattitude == null ||
-        req.body.nbPlace == null ||
-        req.body.assurance == null ||
-        req.body.type == null ||
-        req.body.description == null ||
-        req.body.price == null ||
-        req.body.isActivated == null ||
-        req.body.user_id == null
+        req.body.address === null ||
+        req.body.zipCode === null ||
+        req.body.city === null
     ) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
@@ -203,55 +225,67 @@ exports.addParkingParticulier = async (req, res) => {
         return;
     }
 
-    const parking = { ...req.body };
+    const {address, zipCode, city} = req.body;
+    const UserId = req.user.id
+
+    const parking = { 
+        address,
+        zipCode,
+        city,
+        UserId: UserId
+     };
 
     logger.info(
         `${req.method} ${req.originalUrl}, Creating new parking particulier.`
     );
 
-
     ParkingParticulier.create(parking)
         .then((data) => {
-            res.status(HttpStatus.CREATED.code).send(
-                new Response(
-                    HttpStatus.CREATED.code,
-                    HttpStatus.CREATED.message,
-                    `Parking Particulier created`
-                )
-            );
+            if(typeof(req.body.address) === "string" && 
+            typeof(req.body.address) === "string" &&
+            typeof(req.body.address) === "string"){
+                res.status(HttpStatus.CREATED.code).send(
+                    new Response(
+                        HttpStatus.CREATED.code,
+                        HttpStatus.CREATED.message,
+                        `Parking Particulier created`,
+                        data
+                    )
+                );
+            }
         })
         .catch((error) => {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                    `Some error occurred while creating the parking.`
-                )
-            );
+            console.log(error)
+            if(error.name === 'SequelizeUniqueConstraintError'){
+                res.status(HttpStatus.CONFLICT.code).send(
+                    new Response(
+                        HttpStatus.CONFLICT.code,
+                        HttpStatus.CONFLICT.message,
+                        `The parking lot already exists!.`
+                    )
+                );
+            }
+            else{
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                        `Some error occurred while creating the parking.`
+                    )
+                );
+            }
         });
 };
 
 exports.updateParkingParticulier = (req, res) => {
     const id = req.params.id;
 
-    const name = req.body.name;
     const address = req.body.address;
     const zipCode = req.body.zipCode;
     const city = req.body.city;
-    const picture = req.body.picture;
-    const nbPlace = req.body.nbPlace;
-    const assurance = req.body.assurance;
-    const type = req.body.type;
-    const description = req.body.description;
-    const price = req.body.price;
-    const isActivated = req.body.isActivated;
-    const user_id = req.body.user_id;
 
     let parking = {};
 
-    if (name) {
-        parking.name = name;
-    }
     if (address) {
         parking.address = address;
     }
@@ -261,40 +295,16 @@ exports.updateParkingParticulier = (req, res) => {
     if (city) {
         parking.city = city;
     }
-    if (picture) {
-        parking.picture = picture;
-    }
-    if (nbPlace) {
-        parking.nbPlace = nbPlace;
-    }
-    if (assurance) {
-        parking.assurance = assurance;
-    }
-    if (type) {
-        parking.type = type;
-    }
-    if (description) {
-        parking.description = description;
-    }
-    if (price) {
-        parking.price = price;
-    }
-    if (isActivated) {
-        parking.isActivated = isActivated;
-    }
-    if (user_id) {
-        parking.user_id = user_id;
-    }
 
-    if (id == null || Object.keys(parking).length === 0) {
+    if (!id || Object.keys(parking).length === 0) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
                 HttpStatus.BAD_REQUEST.code,
                 HttpStatus.BAD_REQUEST.message,
+                parking,
                 `Content can not be empty!`
             )
         );
-        return;
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Updating parking.`);
@@ -302,10 +312,10 @@ exports.updateParkingParticulier = (req, res) => {
     ParkingParticulier.update(parking, { where: { id: id } })
         .then((response) => {
             if (response[0] === 0) {
-                res.status(HttpStatus.OK.code).send(
+                res.status(HttpStatus.NOT_FOUND.code).send(
                     new Response(
-                        HttpStatus.OK.code,
-                        HttpStatus.OK.message,
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
                         `Cannot update account with id=${id}. Maybe parking was not found!`
                     )
                 );
@@ -335,44 +345,30 @@ exports.updateParkingParticulier = (req, res) => {
 
 exports.deleteParkingParticulier = (req, res) => {
     const id = req.params.id;
-    const parking = {
-        name: "Deleted-RGPD",
-        address: "Deleted-RGPD",
-        zipCode: "Deleted-RGPD",
-        city: "Deleted-RGPD",
-        lattitude: 0.0,
-        longitude: 0.0,
-        picture: "Deleted-RGPD",
-        nbPlace: 0,
-        assurance: false,
-        type: "Deleted-RGPD",
-        description: "Deleted-RGPD",
-        price: 0.0,
-        isActivated: false,
-    };
 
     logger.info(`${req.method} ${req.originalUrl}, Deleting parking.`);
-    ParkingParticulier.update(parking, { where: { id: id } })
+    ParkingParticulier.destroy({ where: { id: id } })
         .then((response) => {
             if (response[0] === 0) {
-                res.status(HttpStatus.NO_CONTENT.code).send(
+                res.status(HttpStatus.NOT_FOUND.code).send(
                     new Response(
-                        HttpStatus.NO_CONTENT.code,
-                        HttpStatus.NO_CONTENT.message,
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
                         `Cannot delete Parking with id=${id}. Maybe Parking was not found!`
                     )
                 );
                 return;
             }
-            res.status(HttpStatus.OK.code).send(
+            res.status(HttpStatus.NO_CONTENT.code).send(
                 new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
+                    HttpStatus.NO_CONTENT.code,
+                    HttpStatus.NO_CONTENT.message,
                     `Parking deleted successfully!`
                 )
             );
         })
         .catch((error) => {
+            console.log(error)
             if (error.name === "SequelizeUniqueConstraintError") {
                 res.status(HttpStatus.FORBIDDEN.code).send(
                     new Response(
@@ -392,6 +388,102 @@ exports.deleteParkingParticulier = (req, res) => {
             }
         });
 };
+
+exports.restoreParkingDeleted = (req, res) => {
+    ParkingParticulier.findOne({
+        where: {
+            id: req.params.id
+        },
+        paranoid: false,
+      })
+      .then((data) => {
+        if(data){
+            ParkingParticulier.restore();
+            res.status(HttpStatus.ACCEPTED.code).send(
+                new Response(
+                    HttpStatus.ACCEPTED.code,
+                    HttpStatus.ACCEPTED.message,
+                    data,
+                    'The parking lot has been successfully restored'
+                )
+            )
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        if(error.name === "SequelizeUniqueConstraintError"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                    'The parking lot cannot be found'
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    `Some error occurred while deleting the Parking.`
+                )
+            );
+        }
+      })
+}
+
+// exports.deleteParkingParticulier = (req, res) => {
+//     const id = req.params.id;
+//     const parking = {
+//         address: "Deleted-RGPD",
+//         zipCode: "Deleted-RGPD",
+//         city: "Deleted-RGPD",
+//         lattitude: 0.0,
+//         longitude: 0.0,
+//         isActivated: false,
+//     };
+
+//     logger.info(`${req.method} ${req.originalUrl}, Deleting parking.`);
+//     ParkingParticulier.update(parking, { where: { id: id } })
+//         .then((response) => {
+//             if (response[0] === 0) {
+//                 res.status(HttpStatus.NOT_FOUND.code).send(
+//                     new Response(
+//                         HttpStatus.NOT_FOUND.code,
+//                         HttpStatus.NOT_FOUND.message,
+//                         `Cannot delete Parking with id=${id}. Maybe Parking was not found!`
+//                     )
+//                 );
+//                 return;
+//             }
+//             res.status(HttpStatus.NO_CONTENT.code).send(
+//                 new Response(
+//                     HttpStatus.NO_CONTENT.code,
+//                     HttpStatus.NO_CONTENT.message,
+//                     `Parking deleted successfully!`
+//                 )
+//             );
+//         })
+//         .catch((error) => {
+//             if (error.name === "SequelizeUniqueConstraintError") {
+//                 res.status(HttpStatus.FORBIDDEN.code).send(
+//                     new Response(
+//                         HttpStatus.FORBIDDEN.code,
+//                         HttpStatus.FORBIDDEN.message,
+//                         `Parking already deleted`
+//                     )
+//                 );
+//             } else {
+//                 res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+//                     new Response(
+//                         HttpStatus.INTERNAL_SERVER_ERROR.code,
+//                         HttpStatus.INTERNAL_SERVER_ERROR.message,
+//                         `Some error occurred while deleting the Parking.`
+//                     )
+//                 );
+//             }
+//         });
+// };
 
 // const uploadParkingPicture = async (req, res) => {
 //     try {

@@ -40,7 +40,7 @@ app.use('/post_picture', express.static('post_picture'));
  * ROUTES
  */
 
-app.use('/parking-particulier', parkingParticulierRouter);
+app.use('/parking-particulier', authenticateJWT, parkingParticulierRouter);
 app.use('/annonce', postRouter);
 
 app.use('/bookings', bookingRouter);
