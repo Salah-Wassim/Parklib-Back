@@ -11,21 +11,23 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-    await queryInterface.bulkInsert('Posts', [
-      {
-        title : "mon Super Parking",
-        description : "Super parking",
-        price : 30,
-        picture : '',
-        typeOfPlace: 'souterrain',
-        adress: '10 rue du chateaux',
-        contact : 'email',
-        status: '',
-        isAssured: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ])
+   await queryInterface.bulkInsert('ValidationStatuses', [
+    {
+      name: "Brouillon",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      name: "En attente de modération",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      name: "Validé",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+   ])
   },
 
   down: async (queryInterface, Sequelize) => {

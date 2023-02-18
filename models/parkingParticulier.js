@@ -11,26 +11,18 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      ParkingParticulier.belongsTo(models.User);
+      ParkingParticulier.hasOne(models.Post);
+      ParkingParticulier.hasMany(models.Favorite);      
     }
   };
   ParkingParticulier.init({
-    name: DataTypes.STRING,
     address: DataTypes.STRING,
     zipCode: DataTypes.STRING,
     city: DataTypes.STRING,
     lattitude: DataTypes.FLOAT,
     longitude: DataTypes.FLOAT,
-    picture: DataTypes.STRING,
-    nbPlace: DataTypes.INTEGER,
-    assurance: DataTypes.BOOLEAN,
-    type: DataTypes.STRING,
-    description: DataTypes.STRING,
-    price: DataTypes.FLOAT,
     isActivated: DataTypes.BOOLEAN,
-    UserId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
   }, {
     sequelize,
     modelName: 'ParkingParticulier',

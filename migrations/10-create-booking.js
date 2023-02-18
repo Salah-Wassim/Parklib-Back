@@ -9,18 +9,35 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      post_id: {
-        type: Sequelize.INTEGER
-      },
       start_date: {
+        allowNull: true,
         type: Sequelize.DATE
       },
       end_date: {
+        allowNull: true,
         type: Sequelize.DATE
       },
-      user_id: {
+      isValidated: {
+        type: Sequelize.BOOLEAN,
+        allowNull:false,
+      },
+      PostId: {
         type: Sequelize.INTEGER,
-        defaultValue: true
+        onDelete: "CASCADE",
+        allowNull: true,
+        references:{
+          model:'Posts',
+          key:'id'
+        }
+      },
+      UserId: {
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        allowNull: true,
+        references:{
+          model:'Users',
+          key:'id'
+        }
       },
       createdAt: {
         allowNull: false,

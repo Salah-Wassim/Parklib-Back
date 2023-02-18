@@ -92,7 +92,7 @@ exports.findAllParkingParticulierByUser = (req, res) => {
         `${req.method} ${req.originalUrl}, Fetching all parkings for User #${id}.`
     );
     ParkingParticulier.findAll({
-        where: { userId: id },
+        where: { user_id: id },
         order: [["createdAt", "DESC"]],
     })
         .then((data) => {
@@ -191,7 +191,7 @@ exports.addParkingParticulier = async (req, res) => {
         req.body.description == null ||
         req.body.price == null ||
         req.body.isActivated == null ||
-        req.body.UserId == null
+        req.body.user_id == null
     ) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
@@ -245,7 +245,7 @@ exports.updateParkingParticulier = (req, res) => {
     const description = req.body.description;
     const price = req.body.price;
     const isActivated = req.body.isActivated;
-    const UserId = req.body.UserId;
+    const user_id = req.body.user_id;
 
     let parking = {};
 
@@ -282,8 +282,8 @@ exports.updateParkingParticulier = (req, res) => {
     if (isActivated) {
         parking.isActivated = isActivated;
     }
-    if (UserId) {
-        parking.UserId = UserId;
+    if (user_id) {
+        parking.user_id = user_id;
     }
 
     if (id == null || Object.keys(parking).length === 0) {

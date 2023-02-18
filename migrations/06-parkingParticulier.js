@@ -1,52 +1,46 @@
 'use strict';
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('ParkingParticuliers', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
       },
-      firstName: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      lastName: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      phone: {
-        type: Sequelize.STRING,
-        allowNull: true ,
-        unique: true
-      },
-      picture: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
       address: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: false
       },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: {
-            msg: "Must be a valid email address",
-          }
-        }
-      },
-      password: {
+      zipCode: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      city: {
+        type: Sequelize.STRING,
+        allowNull: false
+        },
+      lattitude: {
+        type: Sequelize.REAL,
+        allowNull: true
+      },
+      longitude: {
+        type: Sequelize.REAL,
+        allowNull: true
+      },
+      UserId: {
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        allowNull:false,
+        references: {
+          model: 'Users',
+          key:'id'
+        }
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -59,6 +53,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('ParkingParticuliers');
   }
 };

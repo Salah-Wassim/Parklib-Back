@@ -1,68 +1,53 @@
 'use strict';
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('ParkingParticuliers', {
+    await queryInterface.createTable('Users', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
       },
-      name: {
+      firstName: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      lastName: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      phone: {
+        type: Sequelize.STRING,
+        allowNull: true ,
+        unique: true
+      },
+      picture: {
+        type: Sequelize.STRING,
+        allowNull: true
       },
       address: {
         type: Sequelize.STRING,
-        allowNull: false
-      },
-      zipCode: {
-        type: Sequelize.STRING,
-        allowNull: false ,
-      },
-      city: {
-        type: Sequelize.STRING,
-        allowNull: false
-        },
-      lattitude: {
-        type: Sequelize.FLOAT,
         allowNull: true
       },
-      longitude: {
-        type: Sequelize.FLOAT,
-        allowNull: true
-        },
-      picture: {
+      email: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: {
+            msg: "Must be a valid email address",
+          }
+        }
       },
-      nbPlace: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      assurance: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false
-      },
-      type: {
+      password: {
         type: Sequelize.STRING,
-        allowNull: false
-      },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      price: {
-        type: Sequelize.FLOAT,
-        allowNull: false
-      },
-      UserId: {
-        type: Sequelize.INTEGER,
         allowNull: false
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
-        allowNull: false
+        allowNull: false,
+        defaultValue: true
       },
       createdAt: {
         allowNull: false,
@@ -75,6 +60,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('ParkingParticuliers');
+    await queryInterface.dropTable('Users');
   }
 };
