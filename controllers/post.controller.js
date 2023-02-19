@@ -1,17 +1,44 @@
 const ParkingParticulier = require('../models').ParkingParticulier;
 const Post  = require('../models').Post;
+const HttpStatus = require("../utils/httpStatus.util.js");
+const Response = require("../utils/response.util.js");
 
 exports.list_post = (req, res, next) => {
     Post.findAll({
         order : [
             ['price', 'DESC']
         ]
-
     })
-    .then(data => {     
-        res.status(200).json(data);
+    .then(data => { 
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    data,
+                )
+            );
+        }    
     })
-    .catch(err => console.error(err))
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    })
 }
 
 exports.list_post_by_parkingParticulier = (req, res, next) => {
@@ -29,76 +56,254 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
         ]
     })
     .then(data => {     
-        res.status(200).json(data);
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    data,
+                )
+            );
+        }    
     })
-    .catch(err => console.error(err))
-}
-
-exports.create_post = (req, res, next) => {
-    Post.create(req.body)
-    .then(data => {
-        if((req.body.title && typeof(req.body.title) === 'string') 
-        && (req.body.description && typeof(req.body.description) === 'string')
-        && (req.body.price && typeof(req.body.price) === 'number')
-        && (req.body.picture && typeof(req.body.picture) === 'string')
-        && (req.body.typeOfPlace && typeof(req.body.typeOfPlace) === 'string')
-        && (req.body.adress && typeof(req.body.adress) === 'string')
-        && (req.body.contact && typeof(req.body.contact) === 'string')
-        && (req.body.isAssured && typeof(req.body.isAssured) === 'boolean')){
-            res.status(201).json({
-                message : 'Annonce créée',
-                data : data
-            })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
         }
     })
-    .catch(err => console.error(err))
+}
+
+exports.list_post_by_user = (req, res, next) => {
+
+}
+
+exports.create_post = async (req, res, next) => {
+
+    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId} = req.body
+
+    const UserId = req.user.id;
+
+    console.log("UserId", UserId);
+
+    const parkingParticulier = await ParkingParticulier.findOne({
+        where:{
+            UserId: UserId
+        }
+    });
+
+    console.log('parkingParticulier', parkingParticulier)
+
+    let post = {};
+
+    post= {
+        title : title && typeof(title)==="string" ? post.title = title : "",
+        description: description && typeof(description)==="string" ? post.description = description : "",
+        price : price && typeof(price)==="number" ? post.price = price : null,
+        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : null,
+        ParkingParticulierId : parkingParticulier.id ? parkingParticulier.id : null
+    }
+
+    console.log("post", post)
+
+    for(value in post){
+        if(!post[value]){
+            console.log(`${value}: ${post[value]}`);
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    'All attributs must be filled'
+                )
+            )
+        }
+    }
+
+    Post.create(post)
+    .then(response => {
+        if(response[0]===0){
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    'The response returned is empty'
+                )
+            )
+        }
+        else {
+            res.status(HttpStatus.CREATED.code).send(
+                new Response(
+                    HttpStatus.CREATED.code,
+                    HttpStatus.CREATED.message,
+                    post
+                )
+            )
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "SequelizeUniqueConstraintError"){
+            res.status(HttpStatus.CONFLICT.code).send(
+                new Response(
+                    HttpStatus.CONFLICT.code,
+                    HttpStatus.CONFLICT.message,
+                    'The post you\'ve been created is already existing'
+                )
+            )
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+            )
+        )
+    })
 }
 
 exports.edit_post = (req, res, next) => {
-    Post.update(req.body, {
+    const id = req.params.id
+
+    if(!id){
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Id value ${id} cannot exist or type is incorrect`
+            )
+        )
+    }
+
+    const {title, description, price, contact, isAssured, typeOfPlace} = req.body
+
+    let post = {};
+
+    post = {
+        title : title && typeof(title)==="string" ? post.title = title : "",
+        description: description && typeof(description)==="string" ? post.description = description : "",
+        price : price && typeof(price)==="number" ? post.price = price : null,
+        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
+    };
+
+    for(value in post){
+        if(!post[value]){
+            console.error('bad request')
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    'Content cannot be empty'
+                )
+            );
+            return false;
+        }
+    }
+
+    Post.update(post, {
         where : {
-            id : req.params.id
+            id : id
         }
     })
-    .then(data => {
-        res.status(200).json({
-            message : 'Annonce modifiée',
-            data : data,
-        })
+    .then(response => {
+        console.log(typeof(response))
+        if(response[0]===0){
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    `The response is empty`
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    post,
+                )
+            )
+        }
     })
     .catch(err => {
-        res.status(404).json(err)
+        console.log(err);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+            )
+        )
     })
 }
 
 exports.delete_post = (req, res, next) => {
-    Post.delete(req.body, {
+    const id = req.params.id;
+    if(!id){
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Id value ${id}, cannot be empty`
+            )
+        )
+    }
+    Post.destroy({
         where : {
-            id: req.params.id
+            id: id
         }
     })
     .then(() => {
-        res.status(204).json({
-            message : 'Annonce supprimée'
-        })
+        res.status(HttpStatus.NO_CONTENT.code).send(
+            new Response(
+                HttpStatus.NO_CONTENT.code,
+                HttpStatus.NO_CONTENT.message,
+            )
+        )
     })
     .catch(err => {
-        res.status(400).json(err)
+        console.log(err);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+            )
+        )
     })
 }
 
 exports.details_post = (req, res, next) => {
-    Post.findByPk(req.params.id)
+    const id = req.params.id;
+    Post.findByPk(id)
     .then(data => {
-        res.status(200).json({
-            message : 'detail de l\'annonce',
-            data : data
-        })
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                data,
+            )
+        )
     })
     .catch(err => {
+        console.log(err);
         res.status(404).json(err)
     })
-
 }
 
 exports.search_post = (req, res, next) => {
@@ -111,8 +316,34 @@ exports.search_post = (req, res, next) => {
         }
     })
     .then(data => {
-        res.status(200).json(data);
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    data,
+                )
+            )
+        }
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        console.error(err);
+        if(err.name === "SequelizeUniqueConstraintError"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    });
 }
 

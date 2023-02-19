@@ -41,7 +41,7 @@ app.use('/post_picture', express.static('post_picture'));
  */
 
 app.use('/parking-particulier', authenticateJWT, parkingParticulierRouter);
-app.use('/annonce', postRouter);
+app.use('/annonce', authenticateJWT ,postRouter);
 
 app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
