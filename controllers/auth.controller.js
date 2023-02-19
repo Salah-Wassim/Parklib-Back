@@ -8,9 +8,9 @@ const Response = require('../utils/response.util.js');
 require('dotenv').config();
 
 exports.register = (req, res) => {
-    if (req.body.password == null || req.body.email == null || req.body.lastName == null || req.body.firstName == null) {
-        res.status(HttpStatus.BAD_REQUEST.code)
-            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
+    if (req.body.password == null || req.body.email == null) {
+        res.status(HttpStatus.NO_CONTENT.code)
+            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
         return;
     }
 
@@ -33,7 +33,6 @@ exports.register = (req, res) => {
             .then(data => {
                     const accessToken = jwt.sign({
                         id: data.id,
-                        name: data.lastName+" "+data.firstName,
                         email: data.email
                     }, process.env.SECRET, { expiresIn:process.env.EXPIRES_IN});
 
@@ -72,13 +71,10 @@ exports.login = (req, res) => {
                 if (result) {
                     const accessToken = jwt.sign({
                         id: user.id,
-                        name: user.lastName+" "+user.firstName,
                         email: user.email
                     }, process.env.SECRET, { expiresIn:process.env.EXPIRES_IN});
-
                     res.status(HttpStatus.OK.code)
                         .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`User retrieved`, {accessToken}));
-
                 }
                 else {
                     res.status(HttpStatus.UNAUTHORIZED.code)
@@ -89,6 +85,6 @@ exports.login = (req, res) => {
         })
         .catch(err => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving the account.`));
+                .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving the account.`,{err}));
         });
 }
