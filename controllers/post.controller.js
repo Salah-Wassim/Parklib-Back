@@ -116,11 +116,9 @@ exports.create_post = async (req, res, next) => {
         contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
         isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
         typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : null,
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : 2,
         ParkingParticulierId : parkingParticulier.id ? parkingParticulier.id : null
     }
-
-    console.log("post", post)
 
     for(value in post){
         if(!post[value]){
@@ -129,7 +127,7 @@ exports.create_post = async (req, res, next) => {
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
-                    'All attributs must be filled'
+                    'All attributs must be filled or type of attributs is incorrect'
                 )
             )
         }
@@ -253,7 +251,7 @@ exports.edit_post = (req, res, next) => {
     })
 }
 
-exports.delete_post = (req, res, next) => {
+exports.delete_post = async (req, res, next) => {
     const id = req.params.id;
     if(!id){
         res.status(HttpStatus.BAD_REQUEST.code).send(
@@ -264,6 +262,31 @@ exports.delete_post = (req, res, next) => {
             )
         )
     }
+
+    const UserId = req.user.id;
+
+    const parkingParticulier = await ParkingParticulier.findOne({
+        where:{
+            UserId: UserId
+        }
+    });
+
+    const parkingParticulierSelected = await Post.findOne({
+        where:{
+            id: id
+        }
+    })
+
+    if(parkingParticulier.id !== parkingParticulierSelected.ParkingParticulierId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You cannot delete this post'
+            )
+        )
+    }
+
     Post.destroy({
         where : {
             id: id
