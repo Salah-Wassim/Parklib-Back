@@ -174,7 +174,7 @@ exports.create_post = async (req, res, next) => {
     })
 }
 
-exports.edit_post = (req, res, next) => {
+exports.edit_post = async (req, res, next) => {
     const id = req.params.id
 
     if(!id){
@@ -212,6 +212,30 @@ exports.edit_post = (req, res, next) => {
             );
             return false;
         }
+    }
+
+    const UserId = req.user.id;
+
+    const parkingParticulier = await ParkingParticulier.findOne({
+        where:{
+            UserId: UserId
+        }
+    });
+
+    const parkingParticulierSelected = await Post.findOne({
+        where:{
+            id: id
+        }
+    })
+
+    if(parkingParticulier.id !== parkingParticulierSelected.ParkingParticulierId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those post'
+            )
+        )
     }
 
     Post.update(post, {
@@ -282,7 +306,7 @@ exports.delete_post = async (req, res, next) => {
             new Response(
                 HttpStatus.FORBIDDEN.code,
                 HttpStatus.FORBIDDEN.message,
-                'You cannot delete this post'
+                'You\'re not the owner of those post'
             )
         )
     }

@@ -277,7 +277,7 @@ exports.addParkingParticulier = async (req, res) => {
         });
 };
 
-exports.updateParkingParticulier = (req, res) => {
+exports.updateParkingParticulier = async (req, res) => {
     const id = req.params.id;
 
     const address = req.body.address;
@@ -305,6 +305,24 @@ exports.updateParkingParticulier = (req, res) => {
                 `Content can not be empty!`
             )
         );
+    }
+
+    const UserIdConnected = req.user.id;
+
+    const UserIdParking = await ParkingParticulier.findOne({
+        where: {
+            id : id
+        }
+    });
+
+    if(UserIdConnected !== UserIdParking.UserId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those parking'
+            )
+        )
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Updating parking.`);
@@ -343,8 +361,26 @@ exports.updateParkingParticulier = (req, res) => {
         });
 };
 
-exports.deleteParkingParticulier = (req, res) => {
+exports.deleteParkingParticulier = async (req, res) => {
     const id = req.params.id;
+
+    const UserIdConnected = req.user.id;
+
+    const UserIdParking = await ParkingParticulier.findOne({
+        where: {
+            id : id
+        }
+    });
+
+    if(UserIdConnected !== UserIdParking.UserId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those parking'
+            )
+        )
+    }
 
     logger.info(`${req.method} ${req.originalUrl}, Deleting parking.`);
     ParkingParticulier.destroy({ where: { id: id } })
