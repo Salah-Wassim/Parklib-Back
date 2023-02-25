@@ -10,11 +10,11 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       start_date: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       end_date: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       isValidated: {
@@ -24,7 +24,7 @@ module.exports = {
       PostId: {
         type: Sequelize.INTEGER,
         onDelete: "CASCADE",
-        allowNull: true,
+        allowNull: false,
         references:{
           model:'Posts',
           key:'id'
@@ -33,7 +33,7 @@ module.exports = {
       UserId: {
         type: Sequelize.INTEGER,
         onDelete: "CASCADE",
-        allowNull: true,
+        allowNull: false,
         references:{
           model:'Users',
           key:'id'

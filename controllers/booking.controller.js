@@ -89,6 +89,7 @@ exports.createBooking = async (req, res) => {
     }
   
     const parsePostId = parseInt(PostId);
+
     if (isNaN(parsePostId)) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
@@ -100,6 +101,7 @@ exports.createBooking = async (req, res) => {
     }
 
     const post = await Post.findByPk(parsePostId);
+
     if (!post) {
         res.status(HttpStatus.NOT_FOUND.code).send(
             new Response(
@@ -110,16 +112,31 @@ exports.createBooking = async (req, res) => {
         );
     }
 
-    if (
-        req.body.start_date == null || 
-        req.body.end_date == null || 
-        req.body.UserId == null ) {
-        res.status(HttpStatus.BAD_REQUEST.code)
-            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
-        return
+    const start_date = req.body.start_date;
+    const end_date = req.body.end_date;
+
+    let booking = {};
+
+    booking = {
+        PostId : post.id ? post.id : null,
+        start_date : start_date ? start_date : "",
+        end_date : end_date ? end_date : "",
+        UserId : userIdConnected ? userIdConnected : null
     }
 
-    const parkingParticulier = ParkingParticulier.findOne({
+    for(let value in booking){
+        if(!booking[value]){
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    `Content can not be empty!` 
+                )
+            );
+        }
+    }
+
+    const parkingParticulier = await ParkingParticulier.findOne({
         where : {
             id : post.ParkingParticulierId
         }
@@ -135,44 +152,63 @@ exports.createBooking = async (req, res) => {
         )
     }
 
-    Booking.create(req.body)
-    .then(data => {
-        const createBooking = {
-            PostId : post.id,
-            start_date : data.start_date,
-            end_date : data.end_date,
-            UserId : userIdConnected
+    Booking.create(booking)
+    .then(response => {
+        console.log(response)
+        if(response[0] === 0){
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    'The response returned is empty'
+                )
+            )
         }
-        logger.info(
-            `${req.method} ${req.originalUrl}, Fetching Req bookings.`
-        ); 
-                res.status(HttpStatus.CREATED.code)
-                .send(new Response(HttpStatus.CREATED.code,HttpStatus.CREATED.message,`Account created`, {createBooking}))
-              
-            })
-
+        res.status(HttpStatus.CREATED.code).send(
+            new Response(
+                HttpStatus.CREATED.code,
+                HttpStatus.CREATED.message,
+                `Booking created`
+            )
+        )        
+    })
     .catch (error => {
+        console.log("error", error);
         if (error.name === 'SequelizeUniqueConstraintError') {
-            res.status(HttpStatus.CONFLICT.code)
-                .send(new Response(HttpStatus.CONFLICT.code,HttpStatus.CONFLICT.message,`Booking already exists` ));
-        } else {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-                .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while creating the account`, error));
+            res.status(HttpStatus.CONFLICT.code).send(
+                new Response(
+                    HttpStatus.CONFLICT.code,
+                    HttpStatus.CONFLICT.message,
+                    `Booking already exists` 
+                )
+            );
+        } 
+        else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    `Some error occurred while creating the account`, 
+                    error
+                )
+            );
         }
     });
-
 }
 
-exports.deleteBooking = (req, res) => {
+exports.deleteBooking = async (req, res) => {
     const id = req.params.id;
 
     const userIdConnected = req.user.id;
 
-    const userBookingId = Booking.findOne({
+    const userBookingId = await Booking.findOne({
         where : {
             id : id
         }
     });
+
+    console.log("userBookingId", userBookingId);
+    console.log("userIdConnected", userIdConnected)
 
     if(userIdConnected !== userBookingId.UserId){
         res.status(HttpStatus.FORBIDDEN.code).send(
@@ -191,16 +227,32 @@ exports.deleteBooking = (req, res) => {
     })
     .then(data => {
         if(data){
-            res.status(HttpStatus.NO_CONTENT.code)
-                .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message, `Booking has been removed`));
-        } else{
-            res.status(HttpStatus.NOT_FOUND.code)
-            .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message, `Booking not found`));
+            res.status(HttpStatus.NO_CONTENT.code).send(
+                new Response(
+                    HttpStatus.NO_CONTENT.code,
+                    HttpStatus.NO_CONTENT.message, 
+                    `Booking has been removed`
+                )
+            );
+        } 
+        else{
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message, 
+                    `Booking not found`
+                )
+            );
         }
     })
     .catch(err => {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`An error occurred while deleting the reservation`, err));
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                `An error occurred while deleting the reservation`, err
+            )
+        );
     }) 
 }
 
