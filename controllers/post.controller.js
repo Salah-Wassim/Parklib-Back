@@ -97,15 +97,21 @@ exports.create_post = async (req, res, next) => {
 
     const UserId = req.user.id;
 
-    console.log("UserId", UserId);
-
     const parkingParticulier = await ParkingParticulier.findOne({
         where:{
             UserId: UserId
         }
     });
 
-    console.log('parkingParticulier', parkingParticulier)
+    if(!parkingParticulier){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                "You can't create a post because you don't own a parking lot"
+            )
+        )
+    }
 
     let post = {};
 
