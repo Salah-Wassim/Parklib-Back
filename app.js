@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const ip = require("ip");
 const logger = require("./utils/logger.util.js");
