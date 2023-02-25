@@ -5,8 +5,15 @@ const HttpStatus = require('../utils/httpStatus.util.js');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
 
-exports.findAllBooking = (req, res) => {
-    Booking.findAll()
+exports.findAllBooking = async (req, res) => {
+
+    const userIdConnected = req.user.id
+
+    Booking.findAll({
+        where : {
+            UserId: userIdConnected
+        }
+    })
     .then(data =>{
         if(data){
             res.status(HttpStatus.OK.code)
@@ -23,22 +30,46 @@ exports.findAllBooking = (req, res) => {
     })
 }
 
-exports.findOneBooking = (req, res) => {
+exports.findOneBooking = async (req, res) => {
 
-    Booking.findByPk(req.body.id)
-        .then((data) => {
-                if(data){
-                    res.status(HttpStatus.OK.code)
-                    .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
-                } else{
-                    res.status(HttpStatus.NOT_FOUND.code)
-                    .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message));
-                }
-        })
-        .catch((err) => {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-                .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
-        });
+    const id = req.params.id;
+
+    const userIdConnected = req.user.id
+
+    const booking = await Booking.findOne({
+        where : {
+            id: id
+        }
+    })
+
+    if(userIdConnected !== booking.UserId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                "You're not the owner of this booking"
+            )
+        )
+    }
+
+    Booking.findOne({
+        where : {
+            id : id
+        }
+    })
+    .then((data) => {
+        if(data){
+            res.status(HttpStatus.OK.code)
+            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
+        } else{
+            res.status(HttpStatus.NOT_FOUND.code)
+            .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message));
+        }
+    })
+    .catch((err) => {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
+    });
 }
 
 exports.createBooking = async (req, res) => {
