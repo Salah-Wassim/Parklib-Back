@@ -4,9 +4,9 @@ const reservation = require("../controllers/booking.controller.js");
 
 
 router.get("/", reservation.findAllBooking);
-router.get("/search", reservation.findOneBooking);
+router.get("/find/:id", reservation.findOneBooking);
 router.post("/create", reservation.createBooking);
-router.delete("/delete", reservation.deleteBooking);
+router.delete("/:id/delete", reservation.deleteBooking);
 // router.put("/update", reservation.updateBooking);
 
 

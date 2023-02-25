@@ -1,9 +1,9 @@
 const Booking = require("../models").Booking;
-const constante = require('../utils/constantes.util.js');
+const Post = require('../models').Post;
+const ParkingParticulier = require('../models').ParkingParticulier;
 const HttpStatus = require('../utils/httpStatus.util.js');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
-
 
 exports.findAllBooking = (req, res) => {
     Booking.findAll()
@@ -41,24 +41,76 @@ exports.findOneBooking = (req, res) => {
         });
 }
 
+exports.createBooking = async (req, res) => {
 
-exports.createBooking = (req, res) => {
+    const userIdConnected = req.user.id
 
-    if (req.body.post_id == null || 
+    const {PostId} = req.body
+
+    if (!PostId) {
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                "The post ID is missing in the body of the request"
+            )
+        );
+    }
+  
+    const parsePostId = parseInt(PostId);
+    if (isNaN(parsePostId)) {
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                "The post ID is not a valid number"
+            )
+        );
+    }
+
+    const post = await Post.findByPk(parsePostId);
+    if (!post) {
+        res.status(HttpStatus.NOT_FOUND.code).send(
+            new Response(
+                HttpStatus.NOT_FOUND.code,
+                HttpStatus.NOT_FOUND.message,
+                "The selected ad does not exist"
+            )
+        );
+    }
+
+    if (
         req.body.start_date == null || 
         req.body.end_date == null || 
-        req.body.user_id == null ) {
+        req.body.UserId == null ) {
         res.status(HttpStatus.BAD_REQUEST.code)
             .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return
     }
+
+    const parkingParticulier = ParkingParticulier.findOne({
+        where : {
+            id : post.ParkingParticulierId
+        }
+    })
+
+    if(userIdConnected === parkingParticulier.UserId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                "You cannot create a booking because you are the owner of the post selected."
+            )
+        )
+    }
+
     Booking.create(req.body)
     .then(data => {
         const createBooking = {
-            post_id : data.post_id,
+            PostId : post.id,
             start_date : data.start_date,
             end_date : data.end_date,
-            user_id : data.user_id
+            UserId : userIdConnected
         }
         logger.info(
             `${req.method} ${req.originalUrl}, Fetching Req bookings.`
@@ -80,11 +132,30 @@ exports.createBooking = (req, res) => {
 
 }
 
-
 exports.deleteBooking = (req, res) => {
+    const id = req.params.id;
+
+    const userIdConnected = req.user.id;
+
+    const userBookingId = Booking.findOne({
+        where : {
+            id : id
+        }
+    });
+
+    if(userIdConnected !== userBookingId.UserId){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of this booking'
+            )
+        )
+    }
+
     Booking.destroy({
         where: {
-            id: req.body.id
+            id: id
           }
     })
     .then(data => {
