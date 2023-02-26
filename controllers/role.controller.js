@@ -1,4 +1,5 @@
 const Role = require("../models").Role;
+const User = require("../models").User;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 
@@ -82,6 +83,60 @@ exports.find_one_role = (req, res) => {
     })
 }
 
+exports.findOne_role_by_user = (req, res) => {
+
+    const title = req.params.title;
+
+    if(!title){
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Bad request`
+            )
+        )
+    }
+
+    Role.findOne({
+        where : {
+            title : title
+        },
+        include: [
+            {
+                model: User,
+            }
+        ]
+    })
+    .then(response => {
+        if(response[0]===0){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                    'No user with this role was found'
+                )
+            )
+        }
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                response
+            )
+        )
+    })
+    .catch(err => {
+        console.log('error', err);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                'Internal error'
+            )
+        )
+    })
+}
+
 exports.create_role = (req, res) => {
     const title = req.body.title;
 
@@ -145,7 +200,7 @@ exports.create_role = (req, res) => {
 }
 
 exports.update_role = (req, res) => {
-    
+
     const titleParams = req.params.title;
 
     const title = req.body.title;
