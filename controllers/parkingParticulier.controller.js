@@ -1,5 +1,6 @@
 const ParkingParticulier = require("../models").ParkingParticulier;
-const constante = require("../utils/constantes.util.js");
+const Role = require("../models").Role;
+const RoleUser = require("../models").RoleUser;
 const logger = require("../utils/logger.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
@@ -240,18 +241,70 @@ exports.addParkingParticulier = async (req, res) => {
     );
 
     ParkingParticulier.create(parking)
-        .then((data) => {
+        .then( async (data) => {
             if(typeof(req.body.address) === "string" && 
             typeof(req.body.address) === "string" &&
             typeof(req.body.address) === "string"){
-                res.status(HttpStatus.CREATED.code).send(
-                    new Response(
-                        HttpStatus.CREATED.code,
-                        HttpStatus.CREATED.message,
-                        `Parking Particulier created`,
-                        data
+
+                const role = await Role.findOne({ where: { title: "Bailleur" } });
+                    
+                if(role){
+                    let roleUser = {};
+                    roleUser = {
+                        UserId: UserId ? UserId : null,
+                        RoleId: role.id ? role.id : null
+                    }
+                    for(value in roleUser){
+                        if(!roleUser[value]){
+                            res.status(HttpStatus.BAD_REQUEST.code).send(
+                                new Response(
+                                    HttpStatus.BAD_REQUEST.code,
+                                    HttpStatus.BAD_REQUEST.message,
+                                    'Content cannot be empty'
+                                )
+                            )
+                        }
+                    }
+                    RoleUser.create(roleUser)
+                    .then(response => {
+                        if(response[0]===0){
+                            res.status(HttpStatus.NOT_FOUND.code).send(
+                                new Response(
+                                    HttpStatus.NOT_FOUND.code,
+                                    HttpStatus.NOT_FOUND.message,
+                                    'Any response for RoleUser was returned'
+                                )
+                            )
+                        }
+                        res.status(HttpStatus.CREATED.code).send(
+                            new Response(
+                                HttpStatus.CREATED.code,
+                                HttpStatus.CREATED.message,
+                                'Parking and RoleUser is created',
+                                data
+                            )
+                        )
+                    })
+                    .catch(err => {
+                        console.log("err1", err);
+                        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                            new Response(
+                                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                                'An internal error has occurred'
+                            )
+                        )
+                    })
+                }
+                else{
+                    res.status(HttpStatus.NOT_FOUND.code).send(
+                        new Response(
+                            HttpStatus.NOT_FOUND.code,
+                            HttpStatus.NOT_FOUND.message,
+                            `Any role ${role.title} was found`
+                        )
                     )
-                );
+                }
             }
         })
         .catch((error) => {

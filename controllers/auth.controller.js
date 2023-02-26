@@ -41,7 +41,7 @@ exports.register = async (req, res) => {
                     }, process.env.SECRET, { expiresIn:process.env.EXPIRES_IN});
 
                     const role = await Role.findOne({ where: { title: "User" } });
-                    
+
                     if(role){
                         let roleUser = {};
                         roleUser = {
@@ -74,7 +74,8 @@ exports.register = async (req, res) => {
                                 new Response(
                                     HttpStatus.CREATED.code,
                                     HttpStatus.CREATED.message,
-                                    'RoleUser was created'
+                                    'Account and role was created',
+                                    {accessToken}
                                 )
                             )
                         })
@@ -98,8 +99,8 @@ exports.register = async (req, res) => {
                             )
                         )
                     }
-                    res.status(HttpStatus.CREATED.code)
-                    .send(new Response(HttpStatus.CREATED.code,HttpStatus.CREATED.message,`Account created`, {accessToken}));
+                    //res.status(HttpStatus.CREATED.code)
+                    //.send(new Response(HttpStatus.CREATED.code,HttpStatus.CREATED.message,`Account created`, {accessToken}));
                 }
                 else{
                     res.status(HttpStatus.NOT_FOUND.code).send(
