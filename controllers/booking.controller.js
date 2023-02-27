@@ -1,6 +1,8 @@
 const Booking = require("../models").Booking;
 const Post = require('../models').Post;
 const ParkingParticulier = require('../models').ParkingParticulier;
+const Role = require("../models").Role;
+const RoleUser = require("../models").RoleUser;
 const HttpStatus = require('../utils/httpStatus.util.js');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
@@ -153,7 +155,7 @@ exports.createBooking = async (req, res) => {
     }
 
     Booking.create(booking)
-    .then(response => {
+    .then(async (response) => {
         console.log(response)
         if(response[0] === 0){
             res.status(HttpStatus.BAD_REQUEST.code).send(
@@ -164,13 +166,66 @@ exports.createBooking = async (req, res) => {
                 )
             )
         }
-        res.status(HttpStatus.CREATED.code).send(
-            new Response(
-                HttpStatus.CREATED.code,
-                HttpStatus.CREATED.message,
-                `Booking created`
+
+        const role = await Role.findOne({ where: { title: "Locataire" } });
+                    
+        if(role){
+            let roleUser = {};
+            roleUser = {
+                UserId: userIdConnected ? userIdConnected : null,
+                RoleId: role.id ? role.id : null
+            }
+            for(value in roleUser){
+                if(!roleUser[value]){
+                    res.status(HttpStatus.BAD_REQUEST.code).send(
+                        new Response(
+                            HttpStatus.BAD_REQUEST.code,
+                            HttpStatus.BAD_REQUEST.message,
+                            'Content cannot be empty'
+                        )
+                    )
+                }
+            }
+            RoleUser.create(roleUser)
+            .then(data => {
+                if(data[0]===0){
+                    res.status(HttpStatus.NOT_FOUND.code).send(
+                        new Response(
+                            HttpStatus.NOT_FOUND.code,
+                            HttpStatus.NOT_FOUND.message,
+                            'Any response for RoleUser was returned'
+                        )
+                    )
+                }
+                res.status(HttpStatus.CREATED.code).send(
+                    new Response(
+                        HttpStatus.CREATED.code,
+                        HttpStatus.CREATED.message,
+                        'Booking and role user is created',
+                        response
+                    )
+                )
+            })
+            .catch(err => {
+                console.log("err1", err);
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                        'An internal error has occurred'
+                    )
+                )
+            })
+        }
+        else{
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                    `Any role ${role.title} was found`
+                )
             )
-        )        
+        }        
     })
     .catch (error => {
         console.log("error", error);
