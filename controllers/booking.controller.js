@@ -171,7 +171,7 @@ exports.createBooking = async (req, res) => {
         const booking = await Booking.findAll({where : {UserId : userIdConnected}});
         console.log("booking", booking);
 
-        if(booking.length < 1){
+        if(booking.length == 1){
             if(role){
                 let roleUser = {};
                 roleUser = {
@@ -294,15 +294,53 @@ exports.deleteBooking = async (req, res) => {
             id: id
           }
     })
-    .then(data => {
+    .then(async (data) => {
         if(data){
-            res.status(HttpStatus.NO_CONTENT.code).send(
-                new Response(
-                    HttpStatus.NO_CONTENT.code,
-                    HttpStatus.NO_CONTENT.message, 
-                    `Booking has been removed`
-                )
-            );
+            const booking = await Booking.findAll({where : {UserId : userIdConnected}})
+            if(booking.length == 0){
+                const roleUsers = await RoleUser.findAll({where : {UserId : userIdConnected}});
+                if(roleUsers){
+                    const findRoleId = roleUsers.find(roleUser => roleUser.RoleId === 1);
+                    console.log("findRoleId", findRoleId);
+                    if(findRoleId && findRoleId.RoleId){
+                        RoleUser.destroy({where : {RoleId : findRoleId.RoleId}})
+                        .then(() => {
+                            res.status(HttpStatus.NO_CONTENT.code).send(
+                                new Response(
+                                    HttpStatus.NO_CONTENT.code,
+                                    HttpStatus.NO_CONTENT.message, 
+                                )
+                            );
+                        })
+                    }
+                    else{
+                        res.status(HttpStatus.NOT_FOUND.code).send(
+                            new Response(
+                                HttpStatus.NOT_FOUND.code,
+                                HttpStatus.NOT_FOUND.message, 
+                                `Cannot found RoleUser with this RoleId value ${findRoleId.RoleId}`
+                            )
+                        );
+                    }
+                }
+                else{
+                    res.status(HttpStatus.NOT_FOUND.code).send(
+                        new Response(
+                            HttpStatus.NOT_FOUND.code,
+                            HttpStatus.NOT_FOUND.message, 
+                            `Cannot found RoleUser with this UserId value ${userIdConnected}`
+                        )
+                    );
+                }
+            }
+            else{
+                res.status(HttpStatus.NO_CONTENT.code).send(
+                    new Response(
+                        HttpStatus.NO_CONTENT.code,
+                        HttpStatus.NO_CONTENT.message, 
+                    )
+                );
+            }
         } 
         else{
             res.status(HttpStatus.NOT_FOUND.code).send(
