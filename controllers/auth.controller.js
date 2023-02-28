@@ -10,15 +10,15 @@ const Response = require('../utils/response.util.js');
 require('dotenv').config();
 
 exports.register = async (req, res) => {
-    if (req.body.password == null || req.body.email == null) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+    if (!req.body.password || !req.body.email) {
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
     if (req.body.password.length < 8) {
-        res.status(HttpStatus.UNAUTHORIZED.code)
-            .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`Password must be at least 8 characters long` ));
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Password must be at least 8 characters long` ));
         return;
     }
 
@@ -126,7 +126,7 @@ exports.register = async (req, res) => {
 }
 
 exports.login = (req, res) => {
-    if (req.body.password == null || req.body.email == null) {
+    if (!req.body.password || !req.body.email) {
         res.status(HttpStatus.BAD_REQUEST.code)
             .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
@@ -135,9 +135,9 @@ exports.login = (req, res) => {
     logger.info(`${req.method} ${req.originalUrl}, Fetching user.`);
     User.findOne({where: {email: req.body.email}})
         .then(user => {
-            if (user===null) {
-                res.status(HttpStatus.UNAUTHORIZED.code)
-                    .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`email or password incorrect`));
+            if (!user) {
+                res.status(HttpStatus.BAD_REQUEST.code)
+                    .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`email or password incorrect`));
                 return;
             }
 
@@ -151,8 +151,8 @@ exports.login = (req, res) => {
                         .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`User retrieved`, {accessToken}));
                 }
                 else {
-                    res.status(HttpStatus.UNAUTHORIZED.code)
-                        .send(new Response(HttpStatus.UNAUTHORIZED.code,HttpStatus.UNAUTHORIZED.message,`email or password incorrect`));
+                    res.status(HttpStatus.BAD_REQUEST.code)
+                        .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`email or password incorrect`));
                 }
             })
 

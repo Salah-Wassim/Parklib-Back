@@ -55,7 +55,7 @@ exports.findAllParkingParticulier = (req, res) => {
 
 exports.findOneParkingParticulier = (req, res) => {
     const id = req.params.id;
-    if (id == null) {
+    if (!id) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
                 HttpStatus.BAD_REQUEST.code,
@@ -101,7 +101,7 @@ exports.findOneParkingParticulier = (req, res) => {
 
 exports.findAllParkingParticulierByUser = (req, res) => {
     const id = req.params.id;
-    if (id == null) {
+    if (!id) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
                 HttpStatus.BAD_REQUEST.code,
@@ -212,9 +212,9 @@ exports.findActivatedParkingParticulierByParams = (req, res) => {
 
 exports.addParkingParticulier = async (req, res) => {
     if (
-        req.body.address === null ||
-        req.body.zipCode === null ||
-        req.body.city === null
+        !req.body.address ||
+        !req.body.zipCode ||
+        !req.body.city
     ) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(

@@ -133,9 +133,9 @@ exports.updateProfilePicture = async (req, res) => {
     if(phone) user.phone = phone;
     if(address) user.address = address;
 
-    if ((id==null && picture== null) || Object.keys(user).length===0) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+    if ((!id && !picture) || Object.keys(user).length===0) {
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
     }
 
