@@ -14,7 +14,7 @@ router.post("/add", authenticateJWT, parkingParticulierController.addParkingPart
 router.delete("/:id", authenticateJWT, parkingParticulierController.deleteParkingParticulier);
 router.put("/:id", authenticateJWT, parkingParticulierController.updateParkingParticulier);
 router.post("/search", parkingParticulierController.findActivatedParkingParticulierByParams);
-router.put('/:id/restore', authenticateJWT, parkingParticulierController.restoreParkingDeleted)
+//router.put('/:id/restore', authenticateJWT, parkingParticulierController.restoreParkingDeleted)
 
 // export default router;
 module.exports = router;
