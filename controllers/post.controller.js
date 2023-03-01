@@ -1,5 +1,6 @@
 const ParkingParticulier = require('../models').ParkingParticulier;
 const Post  = require('../models').Post;
+const ValidationStatus = require("../models").ValidationStatus;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 
@@ -7,6 +8,12 @@ exports.list_post = (req, res, next) => {
     Post.findAll({
         order : [
             ['price', 'DESC']
+        ],
+        include: [
+            {
+                model: ValidationStatus,
+                attributes: ['id', 'title']
+            }
         ]
     })
     .then(data => { 
@@ -122,7 +129,7 @@ exports.create_post = async (req, res, next) => {
         contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
         isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
         typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : 2,
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : 1,
         ParkingParticulierId : parkingParticulier.id ? parkingParticulier.id : null
     }
 
@@ -276,6 +283,84 @@ exports.edit_post = async (req, res, next) => {
             new Response(
                 HttpStatus.INTERNAL_SERVER_ERROR.code,
                 HttpStatus.INTERNAL_SERVER_ERROR.message,
+            )
+        )
+    })
+}
+
+exports.update_validationStatus_post = async (req, res) => {
+    const id = req.params.id;
+    const validationStatusId = req.body.ValidationStatusId;
+
+    if(!id){
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Something wrong with id value ${id}`
+            )
+        )
+    }
+
+    const post = await Post.findOne({where : { id : id }}); 
+
+    const isValidationStatusIdExist = await ValidationStatus.findOne({
+        where : { id : validationStatusId}
+    })
+
+    if(!post || !isValidationStatusIdExist){
+        res.status(HttpStatus.NOT_FOUND.code).send(
+            new Response(
+                HttpStatus.NOT_FOUND.code,
+                HttpStatus.NOT_FOUND.message,
+                `Id post value ${id} of post or id validationStatus ${isValidationStatusIdExist} was not found`
+            )
+        )
+        return false;
+    }
+
+    let newPost = {};
+
+    newPost = {
+        ValidationStatusId : validationStatusId ? validationStatusId : null
+    }
+
+    for(value in newPost){
+        console.log("newPost", newPost[value])
+        if(!newPost[value]){
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    `Field ValidationStatusId cannot be empty`
+                )
+            );
+            return false;
+        }
+    }
+
+    // TODO : Ajouter une vérification afin que seul l'admin puis faire la modif
+
+    Post.update(newPost, {where : {id : id}})
+    .then(response => {
+        if(response){
+            res.status(HttpStatus.CREATED.code).send(
+                new Response(
+                    HttpStatus.CREATED.code,
+                    HttpStatus.CREATED.message,
+                    'ValidationStatus id updated sucessfully',
+                    response
+                )
+            )
+        }
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                'Internal error'
             )
         )
     })
