@@ -20,7 +20,7 @@ module.exports = {
       contact : 'email',
       isAssured: true,
       ParkingParticulierId:1,
-      ValidationStatusId:3,
+      ValidationStatusId:1,
       createdAt: new Date(),
       updatedAt: new Date()
     },
