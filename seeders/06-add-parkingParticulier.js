@@ -19,7 +19,6 @@ module.exports = {
                 lattitude: 0.0,
                 longitude: 0.0,
                 UserId: 1,
-                isActivated: true,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },

@@ -1,6 +1,4 @@
 const ParkingParticulier = require("../models").ParkingParticulier;
-const Role = require("../models").Role;
-const RoleUser = require("../models").RoleUser;
 const logger = require("../utils/logger.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
@@ -10,12 +8,10 @@ const { Op } = require("sequelize");
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
 exports.findAllParkingParticulier = (req, res) => {
-    const isActivated = req.query.isActivated ?? true;
     logger.info(
         `${req.method} ${req.originalUrl}, Fetching ALL parkings particuliers.`
     );
     ParkingParticulier.findAll({
-        where: { isActivated: isActivated },
         order: [["createdAt", "DESC"]],
     })
         .then((data) => {
@@ -214,7 +210,9 @@ exports.addParkingParticulier = async (req, res) => {
     if (
         !req.body.address ||
         !req.body.zipCode ||
-        !req.body.city
+        !req.body.city ||
+        !req.body.longitude ||
+        !req.body.lattitude
     ) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
@@ -226,13 +224,15 @@ exports.addParkingParticulier = async (req, res) => {
         return;
     }
 
-    const {address, zipCode, city} = req.body;
+    const {address, zipCode, city, longitude, lattitude} = req.body;
     const UserId = req.user.id
 
     const parking = { 
         address,
         zipCode,
         city,
+        longitude,
+        lattitude,
         UserId: UserId
      };
 
@@ -243,81 +243,19 @@ exports.addParkingParticulier = async (req, res) => {
     ParkingParticulier.create(parking)
     .then( async (data) => {
         if(typeof(req.body.address) === "string" && 
-        typeof(req.body.address) === "string" &&
-        typeof(req.body.address) === "string"){
-            const role = await Role.findOne({ where: { title: "Bailleur" } });
-            const parking = await ParkingParticulier.findAll({where : {UserId : UserId}});
-            console.log("parking", parking.length)
-            
-            if(parking.length == 1 ){
-                if(role){
-                    let roleUser = {};
-                    roleUser = {
-                        UserId: UserId ? UserId : null,
-                        RoleId: role.id ? role.id : null
-                    }
-                    for(value in roleUser){
-                        if(!roleUser[value]){
-                            res.status(HttpStatus.BAD_REQUEST.code).send(
-                                new Response(
-                                    HttpStatus.BAD_REQUEST.code,
-                                    HttpStatus.BAD_REQUEST.message,
-                                    'Content cannot be empty'
-                                )
-                            )
-                        }
-                    }
-                    RoleUser.create(roleUser)
-                    .then(response => {
-                        if(response[0]===0){
-                            res.status(HttpStatus.NOT_FOUND.code).send(
-                                new Response(
-                                    HttpStatus.NOT_FOUND.code,
-                                    HttpStatus.NOT_FOUND.message,
-                                    'Any response for RoleUser was returned'
-                                )
-                            )
-                        }
-                        res.status(HttpStatus.CREATED.code).send(
-                            new Response(
-                                HttpStatus.CREATED.code,
-                                HttpStatus.CREATED.message,
-                                'Parking and RoleUser is created',
-                                data
-                            )
-                        )
-                    })
-                    .catch(err => {
-                        console.log("err1", err);
-                        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                            new Response(
-                                HttpStatus.INTERNAL_SERVER_ERROR.code,
-                                HttpStatus.INTERNAL_SERVER_ERROR.message,
-                                'An internal error has occurred'
-                            )
-                        )
-                    })
-                }
-                else{
-                    res.status(HttpStatus.NOT_FOUND.code).send(
-                        new Response(
-                            HttpStatus.NOT_FOUND.code,
-                            HttpStatus.NOT_FOUND.message,
-                            `Any role ${role.title} was found`
-                        )
-                    )
-                }
-            }
-            else{
-                res.status(HttpStatus.CREATED.code).send(
-                    new Response(
-                        HttpStatus.CREATED.code,
-                        HttpStatus.CREATED.message,
-                        'Parking is created',
-                        data
-                    )
+            typeof(req.body.zipCode) === "string" &&
+            typeof(req.body.city) === "string" &&
+            typeof(req.body.longitude) === "number" &&
+            typeof(req.body.lattitude) === "number"
+        ){
+            res.status(HttpStatus.CREATED.code).send(
+                new Response(
+                    HttpStatus.CREATED.code,
+                    HttpStatus.CREATED.message,
+                    'Parking is created',
+                    data
                 )
-            }
+            )
         }
     })
     .catch((error) => {
@@ -461,50 +399,13 @@ exports.deleteParkingParticulier = async (req, res) => {
             );
         }
         else{
-            const parking = await ParkingParticulier.findAll({where : {UserId : UserIdConnected}});
-            console.log('parking = 0', parking.length == 0)
-            if(parking.length == 0){
-
-                const findRoleUser = await RoleUser.findAll({where : {UserId : UserIdConnected}});
-            
-                const findRoleId = findRoleUser.find(roleUser => roleUser.RoleId === 2);
-
-                if(findRoleId){
-                    RoleUser.destroy({
-                        where : {
-                            RoleId : findRoleId.RoleId
-                        }
-                    })
-                    .then(() => {
-                        res.status(HttpStatus.NO_CONTENT.code).send(
-                            new Response(
-                                HttpStatus.NO_CONTENT.code,
-                                HttpStatus.NO_CONTENT.message,
-                                `Parking and role was deleted successfully!`
-                            )
-                        );
-                    })
-                    .catch(error => {
-                        console.log("error", error);
-                        res.status(HttpStatus.BAD_REQUEST.code).send(
-                            new Response(
-                                HttpStatus.BAD_REQUEST.code,
-                                HttpStatus.BAD_REQUEST.message,
-                                `Bad request`
-                            )
-                        );
-                    })
-                }
-            }
-            else{
-                res.status(HttpStatus.NO_CONTENT.code).send(
-                    new Response(
-                        HttpStatus.NO_CONTENT.code,
-                        HttpStatus.NO_CONTENT.message,
-                        `Parking deleted successfully!`
-                    )
-                );
-            }
+            res.status(HttpStatus.NO_CONTENT.code).send(
+                new Response(
+                    HttpStatus.NO_CONTENT.code,
+                    HttpStatus.NO_CONTENT.message,
+                    `Parking and role was deleted successfully!`
+                )
+            );
         }
     })
     .catch((error) => {
@@ -518,6 +419,126 @@ exports.deleteParkingParticulier = async (req, res) => {
         );
     });
 };
+
+/* Suppression du rôle lors de la suppression du parking
+const parking = await ParkingParticulier.findAll({where : {UserId : UserIdConnected}});
+console.log('parking = 0', parking.length == 0)
+if(parking.length == 0){
+    
+    const findRoleUser = await RoleUser.findAll({where : {UserId : UserIdConnected}});
+
+    const findRoleId = findRoleUser.find(roleUser => roleUser.RoleId === 2
+    if(findRoleId){
+        RoleUser.destroy({
+            where : {
+                RoleId : findRoleId.RoleId
+            }
+        })
+        .then(() => {
+            res.status(HttpStatus.NO_CONTENT.code).send(
+                new Response(
+                    HttpStatus.NO_CONTENT.code,
+                    HttpStatus.NO_CONTENT.message,
+                    `Parking and role was deleted successfully!`
+                )
+            );
+        })
+        .catch(error => {
+            console.log("error", error);
+            res.status(HttpStatus.BAD_REQUEST.code).send(
+                new Response(
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    `Bad request`
+                )
+            );
+        })
+    }
+}
+else{
+    res.status(HttpStatus.NO_CONTENT.code).send(
+        new Response(
+            HttpStatus.NO_CONTENT.code,
+            HttpStatus.NO_CONTENT.message,
+            `Parking deleted successfully!`
+        )
+    );
+}*/
+
+/* Ajout d'un rôle lors de la création d'un parking
+const role = await Role.findOne({ where: { title: "Bailleur" } });
+const parking = await ParkingParticulier.findAll({where : {UserId : UserId}});
+console.log("parking", parking.length)
+
+if(parking.length == 1 ){
+    if(role){
+        let roleUser = {};
+        roleUser = {
+            UserId: UserId ? UserId : null,
+            RoleId: role.id ? role.id : null
+        }
+        for(value in roleUser){
+            if(!roleUser[value]){
+                res.status(HttpStatus.BAD_REQUEST.code).send(
+                    new Response(
+                        HttpStatus.BAD_REQUEST.code,
+                        HttpStatus.BAD_REQUEST.message,
+                        'Content cannot be empty'
+                    )
+                )
+            }
+        }
+        RoleUser.create(roleUser)
+        .then(response => {
+            if(response[0]===0){
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        'Any response for RoleUser was returned'
+                    )
+                )
+            }
+            res.status(HttpStatus.CREATED.code).send(
+                new Response(
+                    HttpStatus.CREATED.code,
+                    HttpStatus.CREATED.message,
+                    'Parking and RoleUser is created',
+                    data
+                )
+            )
+        })
+        .catch(err => {
+            console.log("err1", err);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    'An internal error has occurred'
+                )
+            )
+        })
+    }
+    else{
+        res.status(HttpStatus.NOT_FOUND.code).send(
+            new Response(
+                HttpStatus.NOT_FOUND.code,
+                HttpStatus.NOT_FOUND.message,
+                `Any role ${role.title} was found`
+            )
+        )
+    }
+}
+else{
+    res.status(HttpStatus.CREATED.code).send(
+        new Response(
+            HttpStatus.CREATED.code,
+            HttpStatus.CREATED.message,
+            'Parking is created',
+            data
+        )
+    )
+}*/
 
 // exports.restoreParkingDeleted = (req, res) => {
 //     ParkingParticulier.findOne({

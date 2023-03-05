@@ -1,6 +1,7 @@
 const ParkingParticulier = require('../models').ParkingParticulier;
 const Post  = require('../models').Post;
 const ValidationStatus = require("../models").ValidationStatus;
+const User = require("../models").User;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 
@@ -13,6 +14,13 @@ exports.list_post = (req, res, next) => {
             {
                 model: ValidationStatus,
                 attributes: ['id', 'title']
+            },
+            {
+                model: ParkingParticulier,
+            },
+            {
+                model: User,
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
             }
         ]
     })
@@ -59,7 +67,11 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 where: {
                     id: req.params.id
                 }
-            }
+            },
+            {
+                model: ValidationStatus,
+                attributes: ['id', 'title']
+            },
         ]
     })
     .then(data => {     
@@ -95,22 +107,61 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
 }
 
 exports.list_post_by_user = (req, res, next) => {
-
+    Post.findAll({
+        order : [
+            ['price', 'DESC']
+        ],
+        include: [
+            {
+                model: User,
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture'],
+                where: {
+                    id: req.params.id
+                }
+            },
+            {
+                model: ValidationStatus,
+                attributes: ['id', 'title']
+            },
+        ]
+    })
+    .then(data => {     
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    data,
+                )
+            );
+        }    
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    })
 }
 
 exports.create_post = async (req, res, next) => {
 
-    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId} = req.body
+    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
 
-    const UserId = req.user.id;
-
-    const parkingParticulier = await ParkingParticulier.findOne({
-        where:{
-            UserId: UserId
-        }
-    });
-
-    if(!parkingParticulier){
+    if(!ParkingParticulierId){
         res.status(HttpStatus.FORBIDDEN.code).send(
             new Response(
                 HttpStatus.FORBIDDEN.code,
@@ -127,20 +178,20 @@ exports.create_post = async (req, res, next) => {
         description: description && typeof(description)==="string" ? post.description = description : "",
         price : price && typeof(price)==="number" ? post.price = price : null,
         contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : false,
         typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId : 1,
-        ParkingParticulierId : parkingParticulier.id ? parkingParticulier.id : null
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId = ValidationStatusId : 1,
+        ParkingParticulierId : ParkingParticulierId && typeof(ParkingParticulierId)==="number" ? post.ParkingParticulierId = ParkingParticulierId : null
     }
 
     for(value in post){
         if(!post[value]){
-            console.log(`${value}: ${post[value]}`);
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
-                    'All attributs must be filled or type of attributs is incorrect'
+                    'All attributs must be filled or type of attributs is incorrect',
+                    `${value}: ${post[value]}`
                 )
             )
         }
@@ -162,6 +213,7 @@ exports.create_post = async (req, res, next) => {
                 new Response(
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
+                    'Post is created',
                     post
                 )
             )
@@ -322,7 +374,7 @@ exports.update_validationStatus_post = async (req, res) => {
     let newPost = {};
 
     newPost = {
-        ValidationStatusId : validationStatusId ? validationStatusId : null
+        ValidationStatusId : validationStatusId && typeof(validationStatusId)==="number" ? newPost.validationStatusId = validationStatusId : null,
     }
 
     for(value in newPost){

@@ -38,10 +38,6 @@ module.exports = {
           key:'id'
         }
       },
-      isActivated: {
-        type: Sequelize.BOOLEAN,
-        allowNull: true
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

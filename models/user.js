@@ -21,7 +21,8 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Comment, {
         foreignKey: 'AuthorId'
       });
-      User.hasMany(models.Favorite)
+      User.hasMany(models.Favorite);
+      User.hasMany(models.Post)
     }
   };
   User.init({

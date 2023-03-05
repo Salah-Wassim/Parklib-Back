@@ -22,7 +22,6 @@ module.exports = (sequelize, DataTypes) => {
     city: DataTypes.STRING,
     lattitude: DataTypes.FLOAT,
     longitude: DataTypes.FLOAT,
-    isActivated: DataTypes.BOOLEAN,
   }, {
     sequelize,
     //paranoid: true,
