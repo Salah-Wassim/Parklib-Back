@@ -1,7 +1,7 @@
 module.exports = {
     OK:{code:200,message:"OK"},
     CREATED:{code:201,message:"CREATED"},
-    DELETE:{code:202,message:"DELETE"},
+    ACCEPTED:{code:202,message:"ACCEPTED"},
     NO_CONTENT:{code:204,message:"NO_CONTENT"},
     BAD_REQUEST:{code:400,message:"BAD_REQUEST"},
     UNAUTHORIZED:{code:401,message:"UNAUTHORIZED"},

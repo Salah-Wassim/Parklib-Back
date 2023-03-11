@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   ValidationStatus.init({
-    name: DataTypes.STRING
+    title: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ValidationStatus',

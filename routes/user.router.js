@@ -5,6 +5,7 @@ const Response = require("../utils/response.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const logger = require("../utils/logger.util.js");
 require('dotenv').config();
+const authenticateJWT = require("../middleware/authjwt.js").authenticateJWT;
 
 const router = express.Router();
 
@@ -38,12 +39,13 @@ const userController = require("../controllers/user.controller.js");
 
 router.get("/", userController.findAllUser);
 router.get("/:id", userController.findOneUser);
-router.put("/:id", userController.updateUser);
-router.put("/:id/reset-password", userController.updatePassword);
-router.delete("/:id", userController.deleteUser);
-router.put("/:id/profile", (req, res) => {
+router.put("/:id", authenticateJWT, userController.updateUser);
+router.put("/:id/reset-password", authenticateJWT, userController.updatePassword);
+router.delete("/:id", authenticateJWT, userController.deleteUser);
+router.put('/restore/:id', authenticateJWT, userController.restoreUserDeleted)
+router.put("/:id/profile", authenticateJWT, (req, res) => {
     logger.info("uploading profile picture");
-    upload(req, res, (err) => {
+    upload(req, res, (err) => { 
 
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading.

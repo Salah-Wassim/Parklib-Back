@@ -17,7 +17,7 @@ module.exports = {
         content:'Bonne experience avec cette utilisateur, je recommande',
         UserId: 1,
         AuthorId:2,
-        ValidationStatusId:3,
+        ValidationStatusId:2,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -26,7 +26,7 @@ module.exports = {
         content:'Je recommande',
         UserId: 1,
         AuthorId:2,
-        ValidationStatusId:3,
+        ValidationStatusId:1,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -35,7 +35,7 @@ module.exports = {
         content:'Personne qui ne respecte pas ses engagments',
         UserId: 2,
         AuthorId:1,
-        ValidationStatusId:3,
+        ValidationStatusId:1,
         createdAt: new Date(),
         updatedAt: new Date()
       }

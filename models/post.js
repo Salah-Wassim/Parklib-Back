@@ -14,7 +14,8 @@ module.exports = (sequelize, DataTypes) => {
       Post.belongsTo(models.ParkingParticulier);
       Post.hasOne(models.Booking);
       Post.hasMany(models.Picture);
-      Post.hasOne(models.ValidationStatus);
+      Post.belongsTo(models.ValidationStatus);
+      Post.belongsTo(models.User)
     }
   };
   Post.init({
