@@ -20,7 +20,9 @@ const userRouter = require("./routes/user.router.js");
 const bookingRouter = require("./routes/booking.router.js");
 const postRouter = require("./routes/post.router.js");
 const roleRouter = require("./routes/role.router");
+const pictureRouter = require("./routes/picture.router.js");
 const validationStatusRouter = require("./routes/validationStatus.router");
+
 
 /**
  * IMPORTATION DES MIDDLEWARES
@@ -43,7 +45,8 @@ app.use('/post_picture', express.static('post_picture'));
 
 app.use('/parking-particulier', parkingParticulierRouter);
 app.use('/annonce', postRouter);
-app.use('/validation-status', validationStatusRouter)
+app.use('/picture', pictureRouter);
+app.use('/validation-status', validationStatusRouter);
 app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
