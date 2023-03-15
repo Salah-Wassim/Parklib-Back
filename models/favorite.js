@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Favorite.hasOne(models.User);
-      Favorite.hasOne(models.ParkingParticulier);
+      Favorite.belongsTo(models.User);
+      Favorite.belongsTo(models.ParkingParticulier);
     }
   };
   Favorite.init({

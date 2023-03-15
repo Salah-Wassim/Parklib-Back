@@ -15,7 +15,7 @@ module.exports = {
       {
         firstName:"John",
         lastName:"Doe",
-        password:'*******',
+        password:'123soleilFuck',
         phone:"0654852514",
         picture: "image1",
         address: "10 rue du chateau",

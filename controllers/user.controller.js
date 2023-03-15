@@ -51,7 +51,7 @@ exports.findOneUser = (req, res) => {
         });
 }
 
-exports.updateUser = (req, res) => {
+exports.updateUser = async (req, res) => {
 
     const id = req.params.id;
     const firstName = req.body.firstName??null;
@@ -70,6 +70,24 @@ exports.updateUser = (req, res) => {
         res.status(HttpStatus.NO_CONTENT.code)
             .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
         return;
+    }
+
+    const userIdConnected = req.user.id;
+
+    const userId = await User.findOne({
+        where: {
+            id : id
+        }
+    })
+
+    if(userIdConnected != userId.id ){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those account'
+            )
+        )
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Updating user.`);
@@ -98,7 +116,7 @@ exports.updateUser = (req, res) => {
         });
 }
 
-exports.updateProfilePicture = (req, res) => {
+exports.updateProfilePicture = async (req, res) => {
     const id = req.params.id;
 
     const firstName = req.body.firstName??null;
@@ -115,10 +133,28 @@ exports.updateProfilePicture = (req, res) => {
     if(phone) user.phone = phone;
     if(address) user.address = address;
 
-    if ((id==null && picture== null) || Object.keys(user).length===0) {
-        res.status(HttpStatus.NO_CONTENT.code)
-            .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
+    if ((!id && !picture) || Object.keys(user).length===0) {
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Content can not be empty!` ));
         return;
+    }
+
+    const userIdConnected = req.user.id;
+
+    const userId = await User.findOne({
+        where: {
+            id : id
+        }
+    })
+
+    if(userIdConnected != userId.id ){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those account'
+            )
+        )
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Updating user profile.`);
@@ -148,7 +184,7 @@ exports.updateProfilePicture = (req, res) => {
         });
 }
 
-exports.updatePassword = (req, res) => {
+exports.updatePassword = async (req, res) => {
     const id = req.params.id;
 
     const oldPassword = req.body.oldPassword??null;
@@ -158,6 +194,24 @@ exports.updatePassword = (req, res) => {
         res.status(HttpStatus.NO_CONTENT.code)
             .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Content can not be empty!` ));
         return;
+    }
+
+    const userIdConnected = req.user.id;
+
+    const userId = await User.findOne({
+        where: {
+            id : id
+        }
+    })
+
+    if(userIdConnected != userId.id ){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those account'
+            )
+        )
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Updating user password.`);
@@ -212,29 +266,40 @@ exports.updatePassword = (req, res) => {
 
 }
 
-exports.deleteUser = (req, res) => {
+exports.deleteUser = async (req, res) => {
     const id = req.params.id
-    const currentDate = new Date().toLocaleDateString();
-    const user={
-        firstName: "Deleted-RGPD",
-        lastName: "Deleted-RGPD",
-        picture: "profile_picture/default.png",
-        phone: `${UUID.v4()}`,
-        email: `${currentDate}@Deleted.RGPD`,
-        address: "Deleted-RGPD",
-        password: "Deleted-RGPD",
-        isActivated: false
+
+    const userIdConnected = req.user.id;
+
+    const userId = await User.findOne({
+        where: {
+            id : id
+        }
+    })
+
+    if(userIdConnected != userId.id ){
+        res.status(HttpStatus.FORBIDDEN.code).send(
+            new Response(
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                'You\'re not the owner of those account'
+            )
+        )
     }
 
     logger.info(`${req.method} ${req.originalUrl}, Deleting user.`);
-    User.update(user, {where: {id: id}}).then(response => {
-        if (response[0] === 0) {
-            res.status(HttpStatus.NO_CONTENT.code)
-                .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Cannot delete User with id=${id}. Maybe User was not found!` ));
-            return;
-        }
-        res.status(HttpStatus.OK.code)
-            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Account deleted successfully!` ));
+    User.update(
+        {deletedAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        {where : {id: id}}
+    )
+    .then(response => {
+    if (response[0] == 0) {
+        res.status(HttpStatus.BAD_REQUEST.code)
+            .send(new Response(HttpStatus.BAD_REQUEST.code,HttpStatus.BAD_REQUEST.message,`Cannot delete User with id=${id}. Maybe User was not found!` ));
+        return;
+    }
+    res.status(HttpStatus.OK.code)
+            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`The account deletion request has been sent successfully!` ));
     }).catch(error => {
         if (error.name === 'SequelizeUniqueConstraintError') {
             res.status(HttpStatus.FORBIDDEN.code)
@@ -245,3 +310,81 @@ exports.deleteUser = (req, res) => {
         }
     })
 }
+
+exports.restoreUserDeleted = async (req, res) => {
+    const id = req.params.id;
+    User.findOne({
+        where: {
+            id: id
+        },
+        paranoid: false,
+    })
+    .then((data) => {
+        if(data){
+            User.restore();
+            res.status(HttpStatus.ACCEPTED.code).send(
+                new Response(
+                    HttpStatus.ACCEPTED.code,
+                    HttpStatus.ACCEPTED.message,
+                    data,
+                    'User has been successfully restored'
+                )
+            )
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        if(error.name === "SequelizeUniqueConstraintError"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                    `Unable to find or restore the user account with the id value ${id}!`
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    `Some error occurred while deleting the Parking.`
+                )
+            );
+        }
+    })
+}
+
+// exports.deleteUser = (req, res) => {
+//     const id = req.params.id
+//     const currentDate = new Date().toLocaleDateString();
+//     const user={
+//         firstName: "Deleted-RGPD",
+//         lastName: "Deleted-RGPD",
+//         picture: "profile_picture/default.png",
+//         phone: `${UUID.v4()}`,
+//         email: `${currentDate}@Deleted.RGPD`,
+//         address: "Deleted-RGPD",
+//         password: "Deleted-RGPD",
+//         isActivated: false
+//     }
+
+//     logger.info(`${req.method} ${req.originalUrl}, Deleting user.`);
+//     User.update(user, {where: {id: id}}).then(response => {
+//         if (response[0] === 0) {
+//             res.status(HttpStatus.NO_CONTENT.code)
+//                 .send(new Response(HttpStatus.NO_CONTENT.code,HttpStatus.NO_CONTENT.message,`Cannot delete User with id=${id}. Maybe User was not found!` ));
+//             return;
+//         }
+//         res.status(HttpStatus.OK.code)
+//             .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Account deleted successfully!` ));
+//     }).catch(error => {
+//         if (error.name === 'SequelizeUniqueConstraintError') {
+//             res.status(HttpStatus.FORBIDDEN.code)
+//                 .send(new Response(HttpStatus.FORBIDDEN.code,HttpStatus.FORBIDDEN.message,`Account already deleted` ));
+//         } else {
+//             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+//                 .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while creating the account.`));
+//         }
+//     })
+// }

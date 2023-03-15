@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       ParkingParticulier.belongsTo(models.User);
-      ParkingParticulier.belongsTo(models.Post);
+      ParkingParticulier.hasOne(models.Post);
       ParkingParticulier.hasMany(models.Favorite);      
     }
   };
@@ -22,9 +22,9 @@ module.exports = (sequelize, DataTypes) => {
     city: DataTypes.STRING,
     lattitude: DataTypes.FLOAT,
     longitude: DataTypes.FLOAT,
-    isActivated: DataTypes.BOOLEAN,
   }, {
     sequelize,
+    //paranoid: true,
     modelName: 'ParkingParticulier',
   });
   return ParkingParticulier;

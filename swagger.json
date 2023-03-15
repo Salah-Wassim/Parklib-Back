@@ -356,16 +356,8 @@
       }
     },
     "Register": {
-      "required": ["firstName", "lastName", "email","password"],
+      "required": ["email","password"],
       "properties": {
-        "firstName": {
-          "type": "string",
-          "example": "John"
-        },
-        "lastName": {
-          "type": "boolean",
-          "example": "Doe"
-        },
         "email": {
           "type": "string",
           "example": "johndoe@example.com"

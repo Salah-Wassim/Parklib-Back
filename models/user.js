@@ -21,12 +21,19 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Comment, {
         foreignKey: 'AuthorId'
       });
-      User.hasMany(models.Favorite)
+      User.hasMany(models.Favorite);
+      User.hasMany(models.Post)
     }
   };
   User.init({
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
+    firstName: {
+      type : DataTypes.STRING,
+      defaultValue: "",
+    },
+    lastName: {
+      type : DataTypes.STRING,
+      defaultValue: "",
+    },
     phone: DataTypes.STRING,
     picture: DataTypes.STRING,
     address: DataTypes.STRING,
@@ -35,6 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     isActivated: DataTypes.BOOLEAN
   }, {
     sequelize,
+    paranoid:true,
     modelName: 'User',
   });
   return User;

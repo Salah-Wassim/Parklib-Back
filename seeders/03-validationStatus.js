@@ -13,17 +13,12 @@ module.exports = {
     */
    await queryInterface.bulkInsert('ValidationStatuses', [
     {
-      name: "Brouillon",
+      title: "En attente de modération",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
-      name: "En attente de modération",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      name: "Validé",
+      title: "Validé",
       createdAt: new Date(),
       updatedAt: new Date(),
     }

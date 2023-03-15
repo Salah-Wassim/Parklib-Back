@@ -14,7 +14,7 @@ module.exports = {
    await queryInterface.bulkInsert('Bookings', [
     {
       start_date: new Date(),
-      end_date: null,
+      end_date: new Date(),
       isValidated: false,
       PostId:1,
       UserId:2,

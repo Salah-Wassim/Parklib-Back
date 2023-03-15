@@ -19,8 +19,9 @@ module.exports = {
       typeOfPlace: 'souterrain',
       contact : 'email',
       isAssured: true,
+      UserId:1,
       ParkingParticulierId:1,
-      ValidationStatusId:3,
+      ValidationStatusId:1,
       createdAt: new Date(),
       updatedAt: new Date()
     },

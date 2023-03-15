@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const ip = require("ip");
 const logger = require("./utils/logger.util.js");
@@ -19,8 +18,11 @@ const appRouter = require("./routes/app.router.js");
 const authRouter = require("./routes/auth.router.js");
 const userRouter = require("./routes/user.router.js");
 const bookingRouter = require("./routes/booking.router.js");
-const postRouter = require("./routes/post.router.js")
-const pictureRouter = require("./routes/picture.router.js")
+const postRouter = require("./routes/post.router.js");
+const roleRouter = require("./routes/role.router");
+const pictureRouter = require("./routes/picture.router.js");
+const validationStatusRouter = require("./routes/validationStatus.router");
+
 
 /**
  * IMPORTATION DES MIDDLEWARES
@@ -44,11 +46,12 @@ app.use('/post_picture', express.static('post_picture'));
 app.use('/parking-particulier', parkingParticulierRouter);
 app.use('/annonce', postRouter);
 app.use('/picture', pictureRouter);
-
+app.use('/validation-status', validationStatusRouter);
 app.use('/bookings', bookingRouter);
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
-app.use('/users',authenticateJWT, userRouter);
+app.use('/users', userRouter);
+app.use('/role', roleRouter);
 app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.OK.message ,`Welcome to the Parklib's API, v1.0.0`,{apiDocs:`http://${ip.address()}:${PORT}/api-docs`})));
 app.all("*", (req, res) => res.status(HttpStatus.NOT_FOUND.code).send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message ,`This route does not exist`)));
 

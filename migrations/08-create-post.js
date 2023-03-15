@@ -33,6 +33,15 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false
       },
+      UserId: {
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        allowNull:false,
+        references: {
+          model: 'Users',
+          key:'id'
+        }
+      },
       ParkingParticulierId: {
         type: Sequelize.INTEGER,
         onDelete: "CASCADE",
