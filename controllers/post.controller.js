@@ -2,6 +2,7 @@ const ParkingParticulier = require('../models').ParkingParticulier;
 const Post  = require('../models').Post;
 const ValidationStatus = require("../models").ValidationStatus;
 const User = require("../models").User;
+const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 
@@ -21,6 +22,9 @@ exports.list_post = (req, res, next) => {
             {
                 model: User,
                 attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
+            },
+            {
+                model: Picture
             }
         ]
     })
