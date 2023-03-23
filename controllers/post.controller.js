@@ -225,7 +225,7 @@ exports.create_post = async (req, res, next) => {
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
                     'Post is created',
-                    post
+                    response
                 )
             )
         }
