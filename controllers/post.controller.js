@@ -163,7 +163,8 @@ exports.list_post_by_user = (req, res, next) => {
 
 exports.create_post = async (req, res, next) => {
 
-    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const user = req.user
 
     if(!ParkingParticulierId){
         res.status(HttpStatus.FORBIDDEN.code).send(
@@ -175,17 +176,20 @@ exports.create_post = async (req, res, next) => {
         )
     }
 
+    console.log(user)
+
     let post = {};
 
     post= {
-        title : title && typeof(title)==="string" ? post.title = title : "",
-        description: description && typeof(description)==="string" ? post.description = description : "",
-        price : price && typeof(price)==="number" ? post.price = price : null,
-        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : false,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId = ValidationStatusId : 1,
-        ParkingParticulierId : ParkingParticulierId && typeof(ParkingParticulierId)==="number" ? post.ParkingParticulierId = ParkingParticulierId : null
+        title : title && typeof(title)==="string" ? title : "",
+        description: description && typeof(description)==="string" ? description : "",
+        price : price && typeof(price)==="number" ? price : null,
+        contact : contact && typeof(contact)==="string" ? contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        
     }
 
     for(value in post){
