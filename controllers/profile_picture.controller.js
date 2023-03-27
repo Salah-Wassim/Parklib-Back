@@ -149,10 +149,15 @@ exports.getProfilePicture = (req, res) => {
           );
       }
 
-      const destinationFolder = path.join(__dirname, '../public/profile_picture/');
-      const imagePath = path.join(destinationFolder, user.picture);
-
-      res.sendFile(imagePath);
+      res.status(HttpStatus.OK.code)
+        .send(
+          new Response(
+            HttpStatus.OK.code,
+            HttpStatus.OK.message,
+            'Profile picture retrieved',
+            { imageName: user.picture }
+          )
+        );
     })
     .catch(err => {
       logger.error(`An error occurred while retrieving the profile image: ${err}`);
