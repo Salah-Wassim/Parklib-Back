@@ -494,11 +494,10 @@ exports.uploadPostPicture = async (req, res) => {
                         recursive: true,
                     });
                     await fs.promises.rename(file.filepath, filepath);
-                    const newPicture = await Picture.create({
+                    const newPicture = {
                         url: path.relative(destinationFolder, filepath),
                         postid,
-                    });
-                    console.log(`Picture ${newPicture.id} created`);
+                    };
                     return newPicture;
                 } catch (error) {
                     console.error(`Error while creating picture: ${error}`);
@@ -506,15 +505,20 @@ exports.uploadPostPicture = async (req, res) => {
                 }
             })
         );
+        // console.log(newPictures);
+        Picture.bulkCreate(newPictures)
+            .then(() => {
+                //bug if we defined res.status
+                res.send(
+                    new Response(
+                        HttpStatus.CREATED.code,
+                        HttpStatus.CREATED.message,
+                        "Picture(s) created",
+                        newPictures
+                    ))
+            })
+            .catch(error => console.log(error));
 
-        res.status(HttpStatus.CREATED).send(
-            new Response(
-                HttpStatus.CREATED.code,
-                HttpStatus.CREATED.message,
-                "Picture(s) created",
-                newPictures
-            )
-        );
     } catch (error) {
         logger.error(`Error while upload picture : ${error}`);
         return res
