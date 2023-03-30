@@ -8,12 +8,15 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
 
-exports.uploadPicture = (req, res) => {
+exports.uploadPostPicture = (req, res) => {
+  logger.info("Uploading post picture");
+  
   // Create a new IncomingForm object to parse the incoming form data
   const form = formidable({ multiples: true });
 
   form.parse(req, (err, fields, files) => {
     if (err) {
+      logger.error(`Error occurred while uploading picture: ${err}`);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
         .send(
           new Response(
@@ -30,6 +33,7 @@ exports.uploadPicture = (req, res) => {
 
     // Check if postid is a valid integer
     if (!Number.isInteger(Number(postid))) {
+      logger.warn(`Invalid postid: ${postid}`);
       return res.status(HttpStatus.BAD_REQUEST.code)
         .send(
           new Response(
@@ -44,6 +48,7 @@ exports.uploadPicture = (req, res) => {
     Post.findByPk(postid)
       .then(post => {
         if (!post) {
+          logger.warn(`Post not found with postid: ${postid}`);
           return res.status(HttpStatus.BAD_REQUEST.code)
             .send(
               new Response(
@@ -62,6 +67,7 @@ exports.uploadPicture = (req, res) => {
         })
           .then(count => {
             if (count >= 3) {
+              logger.warn(`There are already 3 pictures for postid: ${postid}`);
               return res.status(HttpStatus.BAD_REQUEST.code)
                 .send(
                   new Response(
@@ -80,6 +86,7 @@ exports.uploadPicture = (req, res) => {
             // Rename the uploaded file and move it to the public/post_picture folder
             fs.rename(files.url.filepath, newpath, function (err) {
               if (err) {
+                logger.error(`Error occurred while moving picture to public folder: ${err}`);
                 return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
                   .send(
                     new Response(
@@ -91,6 +98,8 @@ exports.uploadPicture = (req, res) => {
                   );
               }
 
+              logger.info("Picture moved to public folder");
+
               Picture.create({
                 url: path.relative(destinationFolder, newpath),
                 postid: postid
@@ -99,6 +108,7 @@ exports.uploadPicture = (req, res) => {
                   const picture = {
                     url: data.url
                   };
+                  logger.info("Picture created");
                   res.status(HttpStatus.CREATED.code)
                     .send(
                       new Response(
@@ -116,12 +126,16 @@ exports.uploadPicture = (req, res) => {
 };
 
 
-exports.getPicture = (req, res) => {
+
+exports.getPostPicture = (req, res) => {
   const pictureId = req.params.id;
+
+  logger.info(`Retrieving the post picture with ID ${pictureId}`);
 
   Picture.findByPk(pictureId, { include: Post })
     .then(picture => {
       if (!picture) {
+        logger.warn(`Picture not found with ID ${pictureId}`);
         return res
           .status(HttpStatus.NOT_FOUND.code)
           .send(
@@ -132,7 +146,7 @@ exports.getPicture = (req, res) => {
             )
           );
       }
-      
+      logger.info(`Picture with ID ${pictureId} retrieved successfully`);
       res.status(HttpStatus.OK.code)
         .send(
           new Response(
@@ -144,7 +158,7 @@ exports.getPicture = (req, res) => {
         );
     })
     .catch(error => {
-      logger.error(error);
+      logger.error(`Error occurred while retrieving picture: ${error}`);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
          .send(
           new Response(
@@ -158,33 +172,35 @@ exports.getPicture = (req, res) => {
 };
 
 
-exports.updatePicture = (req, res) => {
+exports.updatePostPicture = (req, res) => {
   const { id } = req.params;
   const form = formidable({ multiples: true });
 
   form.parse(req, (err, fields, files) => {
     if (err) {
+      logger.error(`Error while uploading the image : ${err}`);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
         .send(
           new Response(
             HttpStatus.INTERNAL_SERVER_ERROR.code,
             HttpStatus.INTERNAL_SERVER_ERROR.message,
-            `Some error occurred while uploading picture.`,
+            `An error occurred while uploading the image.`,
             err
           )
         );
     }
-
-    // Check if the picture exists in the database
+    logger.info(`Update the post image with the ID ${id}`);
+    // Check if the image exists in the database
     Picture.findByPk(id)
       .then(picture => {
         if (!picture) {
+          logger.warn(`Image not found with ID ${id}`);
           return res.status(HttpStatus.BAD_REQUEST.code)
             .send(
               new Response(
                 HttpStatus.BAD_REQUEST.code,
                 HttpStatus.BAD_REQUEST.message,
-                `Picture not found`
+                `Image not found`
               )
             );
         }
@@ -192,6 +208,7 @@ exports.updatePicture = (req, res) => {
         // Check if postid is a valid integer
         const postid = fields.postid;
         if (postid && !Number.isInteger(Number(postid))) {
+          logger.warn(`invalid postid provided : ${postid}`);
           return res.status(HttpStatus.BAD_REQUEST.code)
             .send(
               new Response(
@@ -202,89 +219,118 @@ exports.updatePicture = (req, res) => {
             );
         }
 
-        // Move the uploaded file to the public/post_picture folder if a new file was uploaded
-        if (files.url) {
-          const ext = path.extname(files.url.originalFilename);
-          const destinationFolder = path.join(__dirname, '../public/post_picture/');
-          const newpath = path.join(destinationFolder, `${uuidv4()}${ext}`);
-          const oldpath = path.join(destinationFolder, picture.url);
-
-          fs.unlink(oldpath, function (err) {
-            if (err && err.code !== 'ENOENT') {
-              return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                  HttpStatus.INTERNAL_SERVER_ERROR.code,
-                  HttpStatus.INTERNAL_SERVER_ERROR.message,
-                  `Error occurred while deleting old picture`,
-                  err
-                )
-              );
-            }
-          });
-
-          fs.rename(files.url.filepath, newpath, function (err) {
-            if (err) {
-              return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+      // Check if the corresponding post exists in the database
+      if (postid) {
+        Post.findByPk(postid)
+          .then(post => {
+            if (!post) {
+              logger.warn(`postid does not correspond to an existing post: ${postid}`);
+              return res.status(HttpStatus.BAD_REQUEST.code)
                 .send(
                   new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                    `Some error occurred while moving picture to public folder.`,
-                    err
+                    HttpStatus.BAD_REQUEST.code,
+                    HttpStatus.BAD_REQUEST.message,
+                    `postid does not correspond to an existing post`
                   )
                 );
             }
 
-            Picture.update({
-              url: path.relative(destinationFolder, newpath),
-              postid: postid
-            }, {
-              where: { id: picture.id }
-            })
-            
-              .then(data => {
-                const updatedPicture = {
-                  url: data.url
-                };
-                res.status(HttpStatus.OK.code)
-                  .send(
+            // Move the uploaded file to the public/post_picture folder if a new file has been uploaded
+            if (files.url) {
+              const ext = path.extname(files.url.originalFilename);
+              const destinationFolder = path.join(__dirname, '../public/post_picture/');
+              const newpath = path.join(destinationFolder, `${uuidv4()}${ext}`);
+              const oldpath = path.join(destinationFolder, picture.url);
+
+              fs.unlink(oldpath, function (err) {
+                if (err && err.code !== 'ENOENT') {
+                  logger.error(`Error when deleting the old image : ${err}`);
+                  return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
                     new Response(
-                      HttpStatus.OK.code,
-                      HttpStatus.OK.message,
-                      'Picture updated',
-                      updatedPicture
+                      HttpStatus.INTERNAL_SERVER_ERROR.code,
+                      HttpStatus.INTERNAL_SERVER_ERROR.message,
+                      `Error when deleting the old image`,
+                      err
                     )
                   );
+                }
               });
+
+              fs.rename(files.url.filepath, newpath, function (err) {
+                if (err) {
+                  logger.error(`Error when moving the image to the public folder : ${err}`);
+                  return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+                    .send(
+                      new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                        `An error occurred when moving the image to the public folder.`,
+                        err
+                      )
+                    );
+                }
+
+                Picture.update({
+                  url: path.relative(destinationFolder, newpath),
+                  postid: postid
+                }, {
+                  where: { id: picture.id }
+                })
+
+                  .then(data => {
+                    logger.info(`Image with ID ${id} successfully updated`);
+                    const updatedPicture = {
+                      url: data.url
+                    };
+                    res.status(HttpStatus.OK.code)
+                      .send(
+                        new Response(
+                          HttpStatus.OK.code,
+                          HttpStatus.OK.message,
+                          'Updated image',
+                          updatedPicture
+                        )
+                      );
+                  });
+              });
+            } else {
+              // Update the image in the database without moving the file
+              Picture.update({
+                postid: postid
+              }, {
+                where: { id: picture.id }
+              })
+                .then(data => {
+                  logger.info(`Image with ID ${id} successfully updated`);
+                  const updatedPicture = {
+                    url: data.url
+                  };
+                  res.status(HttpStatus.OK.code)
+                    .send(
+                      new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        'Updated image',
+                        updatedPicture
+                      )
+                    );
+                });
+            }
           });
-        } else {
-          // Update the picture in the database without moving the file
-          Picture.update({
-            postid: postid
-          })
-            .then(data => {
-              const updatedPicture = {
-                url: data.url
-              };
-              res.status(HttpStatus.OK.code)
-                .send(
-                  new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    'Picture updated',
-                    updatedPicture
-                  )
-                );
-            });
-        }
-      });
+      }
+    });
   });
 };
 
-exports.deletePicture = (req, res) => {
+
+
+exports.deletePostPicture = (req, res) => {
+  logger.info(`Deleting post picture with ID ${req.params.id}`);
+  
   Picture.findByPk(req.params.id)
     .then(picture => {
       if (!picture) {
+        logger.warn(`Picture not found with ID ${req.params.id}`);
         return res.status(HttpStatus.NOT_FOUND.code)
                   .send(
                     new Response(
@@ -312,12 +358,21 @@ exports.deletePicture = (req, res) => {
               )
             );
         } else {
+          logger.info(`Image file deleted for picture with ID ${req.params.id}`);
+          
           // If image file deletion is successful, delete the Picture object from the database
           picture.destroy()
             .then(() => {
+              logger.info(`Picture with ID  deleted successfully`);
               res
                 .status(HttpStatus.NO_CONTENT.code)
-                .json({ message: `Picture with id ${req.params.id} has been deleted.` });
+                .send(
+                  new Response(
+                    HttpStatus.NO_CONTENT.code,
+                    HttpStatus.NO_CONTENT.message,
+                    `Picture with id  has been deleted.`
+                  )
+                );
             })
             .catch(err => {
               logger.error(`Error while deleting picture with id ${req.params.id}: ${err.message}`);
