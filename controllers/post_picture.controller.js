@@ -475,7 +475,7 @@ exports.uploadPostPicture = async (req, res) => {
 
         // Upload ALL files sended by a map
         const urls = Array.isArray(files.url) ? files.url : [files.url]; // ensure urls is an array
-        if (urls.length() > 3) {
+        if (urls.length > 3) {
           urls = urls.slice(0, 3);
         }  
         const newPictures = await Promise.all(
