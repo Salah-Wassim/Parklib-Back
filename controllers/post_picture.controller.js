@@ -235,7 +235,7 @@ exports.updatePostPicture = (req, res) => {
                 );
             }
 
-            // Déplacer le fichier téléchargé vers le dossier public/post_picture si un nouveau fichier a été téléchargé
+            // Move the uploaded file to the public/post_picture folder if a new file has been uploaded
             if (files.url) {
               const ext = path.extname(files.url.originalFilename);
               const destinationFolder = path.join(__dirname, '../public/post_picture/');
@@ -294,7 +294,7 @@ exports.updatePostPicture = (req, res) => {
                   });
               });
             } else {
-              // Mettre à jour l'image dans la base de données sans déplacer le fichier
+              // Update the image in the database without moving the file
               Picture.update({
                 postid: postid
               }, {
@@ -363,14 +363,14 @@ exports.deletePostPicture = (req, res) => {
           // If image file deletion is successful, delete the Picture object from the database
           picture.destroy()
             .then(() => {
-              logger.info(`Picture with ID ${req.params.id} deleted successfully`);
+              logger.info(`Picture with ID  deleted successfully`);
               res
                 .status(HttpStatus.NO_CONTENT.code)
                 .send(
                   new Response(
                     HttpStatus.NO_CONTENT.code,
                     HttpStatus.NO_CONTENT.message,
-                    `Picture with id ${req.params.id} has been deleted.`
+                    `Picture with id  has been deleted.`
                   )
                 );
             })

@@ -27,7 +27,7 @@ exports.updateProfilePicture = (req, res) => {
         );
     }
 
-    // Vérifier si l'utilisateur existe dans la base de données
+    // Check if the user exists in the database
     User.findByPk(id)
       .then(user => {
         if (!user) {
@@ -102,7 +102,7 @@ exports.updateProfilePicture = (req, res) => {
               });
           });
         } else {
-          // Mettre à jour l'image dans la base de données sans déplacer le fichier
+          // Update the image in the database without moving the file
           logger.info(`No image to update for the user ${id}`);
           res.status(HttpStatus.OK.code)
             .send(
@@ -173,7 +173,7 @@ exports.getProfilePicture = (req, res) => {
     });
 };
 
-// Supprimer l'image de profil d'un utilisateur
+
 exports.deleteProfilePicture = (req, res) => {
   const { id } = req.params;
 
