@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
 
+
 exports.uploadPostPicture = async (req, res) => {
     console.log("Uploading post picture");
 
@@ -397,5 +398,4 @@ exports.deletePostPicture = (req, res) => {
         );
     });
 };
-
 
