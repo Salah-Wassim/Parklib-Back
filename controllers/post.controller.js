@@ -205,7 +205,7 @@ exports.create_post = async (req, res, next) => {
     }
 
     logger.info(
-        `${req.method} ${req.originalUrl}, Creating new parking particulier.`
+        `${req.method} ${req.originalUrl}, Creating new post.`
     );
 
     Post.create(post)

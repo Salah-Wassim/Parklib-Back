@@ -59,6 +59,9 @@ exports.uploadPostPicture = async (req, res) => {
         if (urls.length > 3) {
           urls = urls.slice(0, 3);
         }  
+        logger.info(
+            `${req.method} ${req.originalUrl}, Sending pictures in public folder.`
+        );
         const newPictures = await Promise.all(
             urls.map(async (file) => {
                 try {
@@ -85,6 +88,9 @@ exports.uploadPostPicture = async (req, res) => {
                     throw error;
                 }
             })
+        );
+        logger.info(
+            `${req.method} ${req.originalUrl}, Creating pictures in BDD.`
         );
         // console.log(newPictures);
         Picture.bulkCreate(newPictures)
