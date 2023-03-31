@@ -8,121 +8,117 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
 
-exports.uploadPostPicture = (req, res) => {
-  logger.info("Uploading post picture");
-  
-  // Create a new IncomingForm object to parse the incoming form data
-  const form = formidable({ multiples: true });
 
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      logger.error(`Error occurred while uploading picture: ${err}`);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        .send(
-          new Response(
-            HttpStatus.INTERNAL_SERVER_ERROR.code,
-            HttpStatus.INTERNAL_SERVER_ERROR.message,
-            `Some error occurred while uploading picture.`,
-            err
-          )
-        );
-    }
+exports.uploadPostPicture = async (req, res) => {
+    console.log("Uploading post picture");
 
-    // Get the value of postid from the form data
-    const postid = fields.postid;
+    try {
+        // Create a new IncomingForm object to parse the incoming form data
+        const form = formidable({ multiples: true });
+        const { fields, files } = await new Promise((resolve, reject) => {
+            form.parse(req, (err, fields, files) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ fields, files });
+                }
+            });
+        });
 
-    // Check if postid is a valid integer
-    if (!Number.isInteger(Number(postid))) {
-      logger.warn(`Invalid postid: ${postid}`);
-      return res.status(HttpStatus.BAD_REQUEST.code)
-        .send(
-          new Response(
-            HttpStatus.BAD_REQUEST.code,
-            HttpStatus.BAD_REQUEST.message,
-            `postid must be a valid integer`
-          )
-        );
-    }
-    
-    // Check if the corresponding post exists in the database
-    Post.findByPk(postid)
-      .then(post => {
+        // Get the value of postid from the form data
+        const postid = parseInt(fields.postid);
+        // Check if postid is a valid integer
+        if (!Number.isSafeInteger(postid)) {
+            logger.error(`Invalid postid: ${postid}`);
+            return res
+                .status(HttpStatus.BAD_REQUEST.code)
+                .send(
+                    new Response(
+                        HttpStatus.BAD_REQUEST.code,
+                        HttpStatus.BAD_REQUEST.message,
+                        `postid must be a valid integer`
+                    )
+                );
+        }
+        // Check if the corresponding post exists in the database
+        const post = await Post.findByPk(postid);
         if (!post) {
-          logger.warn(`Post not found with postid: ${postid}`);
-          return res.status(HttpStatus.BAD_REQUEST.code)
-            .send(
-              new Response(
-                HttpStatus.BAD_REQUEST.code,
-                HttpStatus.BAD_REQUEST.message,
-                `postid does not correspond to an existing post`
-              )
-            );
+            logger.error(`Post not found with postid: ${postid}`);
+            return res
+                .status(HttpStatus.BAD_REQUEST.code)
+                .send(
+                    new Response(
+                        HttpStatus.BAD_REQUEST.code,
+                        HttpStatus.BAD_REQUEST.message,
+                        `postid does not correspond to an existing post`
+                    )
+                );
         }
 
-        // Check if the postid already has 3 pictures
-        Picture.count({
-          where: {
-            postid: postid
-          }
-        })
-          .then(count => {
-            if (count >= 3) {
-              logger.warn(`There are already 3 pictures for postid: ${postid}`);
-              return res.status(HttpStatus.BAD_REQUEST.code)
-                .send(
-                  new Response(
-                    HttpStatus.BAD_REQUEST.code,
-                    HttpStatus.BAD_REQUEST.message,
-                    `There are already 3 pictures for this postid`
-                  )
-                );
-            }
-
-            // Set the new path for the uploaded file
-            const ext = path.extname(files.url.originalFilename);
-            const destinationFolder = path.join(__dirname, '../public/post_picture/');
-            const newpath = path.join(destinationFolder, `${uuidv4()}${ext}`);
-
-            // Rename the uploaded file and move it to the public/post_picture folder
-            fs.rename(files.url.filepath, newpath, function (err) {
-              if (err) {
-                logger.error(`Error occurred while moving picture to public folder: ${err}`);
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-                  .send(
+        // Upload ALL files sended by a map
+        const urls = Array.isArray(files.url) ? files.url : [files.url]; // ensure urls is an array
+        if (urls.length > 3) {
+          urls = urls.slice(0, 3);
+        }  
+        logger.info(
+            `${req.method} ${req.originalUrl}, Sending pictures in public folder.`
+        );
+        const newPictures = await Promise.all(
+            urls.map(async (file) => {
+                try {
+                    const ext = path.extname(file.originalFilename);
+                    const filename = `${uuidv4()}${ext}`;
+                    const destinationFolder = path.join(
+                        __dirname,
+                        "..",
+                        "public",
+                        "post_picture"
+                    );
+                    const filepath = path.join(destinationFolder, filename);
+                    await fs.promises.mkdir(destinationFolder, {
+                        recursive: true,
+                    });
+                    await fs.promises.rename(file.filepath, filepath);
+                    const newPicture = {
+                        url: path.relative(destinationFolder, filepath),
+                        postid,
+                    };
+                    return newPicture;
+                } catch (error) {
+                    console.error(`Error while creating picture: ${error}`);
+                    throw error;
+                }
+            })
+        );
+        logger.info(
+            `${req.method} ${req.originalUrl}, Creating pictures in BDD.`
+        );
+        // console.log(newPictures);
+        Picture.bulkCreate(newPictures)
+            .then(() => {
+                //bug if we defined res.status
+                res.send(
                     new Response(
-                      HttpStatus.INTERNAL_SERVER_ERROR.code,
-                      HttpStatus.INTERNAL_SERVER_ERROR.message,
-                      `Some error occurred while moving picture to public folder.`,
-                      err
-                    )
-                  );
-              }
-
-              logger.info("Picture moved to public folder");
-
-              Picture.create({
-                url: path.relative(destinationFolder, newpath),
-                postid: postid
-              })
-                .then(data => {
-                  const picture = {
-                    url: data.url
-                  };
-                  logger.info("Picture created");
-                  res.status(HttpStatus.CREATED.code)
-                    .send(
-                      new Response(
                         HttpStatus.CREATED.code,
                         HttpStatus.CREATED.message,
-                        'Picture created',
-                        picture
-                      )
-                    );
-                });
-            });
-          });
-      });
-  });
+                        "Picture(s) created",
+                        newPictures
+                    ))
+            })
+            .catch(error => console.log(error));
+
+    } catch (error) {
+        logger.error(`Error while upload picture : ${error}`);
+        return res
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+            .send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    `Error while upload picture : ${error}`
+                )
+            );
+    }
 };
 
 

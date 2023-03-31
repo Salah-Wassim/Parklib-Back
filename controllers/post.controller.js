@@ -5,6 +5,7 @@ const User = require("../models").User;
 const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
+const logger = require("../utils/logger.util.js");
 
 exports.list_post = (req, res, next) => {
     Post.findAll({
@@ -163,7 +164,8 @@ exports.list_post_by_user = (req, res, next) => {
 
 exports.create_post = async (req, res, next) => {
 
-    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const user = req.user
 
     if(!ParkingParticulierId){
         res.status(HttpStatus.FORBIDDEN.code).send(
@@ -178,28 +180,33 @@ exports.create_post = async (req, res, next) => {
     let post = {};
 
     post= {
-        title : title && typeof(title)==="string" ? post.title = title : "",
-        description: description && typeof(description)==="string" ? post.description = description : "",
-        price : price && typeof(price)==="number" ? post.price = price : null,
-        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : false,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId = ValidationStatusId : 1,
-        ParkingParticulierId : ParkingParticulierId && typeof(ParkingParticulierId)==="number" ? post.ParkingParticulierId = ParkingParticulierId : null
+        title : title && typeof(title)==="string" ? title : "",
+        description: description && typeof(description)==="string" ? description : "",
+        price : price && typeof(price)==="number" ? price : null,
+        contact : contact && typeof(contact)==="string" ? contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        UserId: user.id && typeof(user.id) === "number" ? user.id : null
     }
 
     for(value in post){
-        if(!post[value]){
+        if(!post[value] && (value != 'isAssured')){
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
                     'All attributs must be filled or type of attributs is incorrect',
-                    `${value}: ${post[value]}`
+                    `${value}: ${post[value]} , ${typeof(post['value'])}`
                 )
             )
         }
     }
+
+    logger.info(
+        `${req.method} ${req.originalUrl}, Creating new post.`
+    );
 
     Post.create(post)
     .then(response => {
@@ -218,7 +225,7 @@ exports.create_post = async (req, res, next) => {
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
                     'Post is created',
-                    post
+                    response
                 )
             )
         }
@@ -256,21 +263,25 @@ exports.edit_post = async (req, res, next) => {
         )
     }
 
-    const {title, description, price, contact, isAssured, typeOfPlace} = req.body
+    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId} = req.body
+    const user = req.user
 
     let post = {};
 
     post = {
-        title : title && typeof(title)==="string" ? post.title = title : "",
-        description: description && typeof(description)==="string" ? post.description = description : "",
-        price : price && typeof(price)==="number" ? post.price = price : null,
-        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
+        title : title && typeof(title)==="string" ? title : "",
+        description: description && typeof(description)==="string" ? description : "",
+        price : price && typeof(price)==="number" ? price : null,
+        contact : contact && typeof(contact)==="string" ? contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        UserId: user.id && typeof(user.id) === "number" ? user.id : null
     };
 
     for(value in post){
-        if(!post[value]){
+        if(!post[value] && (value != 'isAssured')){
             console.error('bad request')
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
