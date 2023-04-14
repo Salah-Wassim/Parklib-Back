@@ -5,6 +5,7 @@ const User = require("../models").User;
 const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
+const SocketIoService = require('../services/socketIo.service.js');
 
 exports.list_post = (req, res, next) => {
     Post.findAll({
@@ -213,6 +214,9 @@ exports.create_post = async (req, res, next) => {
             )
         }
         else {
+
+            SocketIoService.socket.broadcast.emit('message', `${req.method} ${req.originalUrl}, Fetching users.`);
+    
             res.status(HttpStatus.CREATED.code).send(
                 new Response(
                     HttpStatus.CREATED.code,
