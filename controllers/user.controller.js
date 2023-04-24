@@ -52,8 +52,7 @@ exports.findOneUser = (req, res) => {
 }
 
 exports.updateUser = async (req, res) => {
-
-    const id = req.params.id;
+    const id = req.params.id ? req.params.id : req.user.id ;
     const firstName = req.body.firstName??null;
     const lastName = req.body.lastName??null;
     const phone = req.body.phone??null;

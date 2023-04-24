@@ -39,7 +39,7 @@ const userController = require("../controllers/user.controller.js");
 
 router.get("/", userController.findAllUser);
 router.get("/:id", userController.findOneUser);
-router.put("/:id", authenticateJWT, userController.updateUser);
+router.put("/:id?", authenticateJWT, userController.updateUser);
 router.put("/:id/reset-password", authenticateJWT, userController.updatePassword);
 router.delete("/:id", authenticateJWT, userController.deleteUser);
 router.put('/restore/:id', authenticateJWT, userController.restoreUserDeleted)
