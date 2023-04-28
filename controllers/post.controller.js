@@ -31,6 +31,7 @@ exports.list_post = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post are retrieved`,
                     data,
                 )
             );
@@ -89,6 +90,7 @@ exports.list_one_post = (req, res) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `Post are retrieved`,
                     data,
                 )
             );
@@ -142,6 +144,7 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by parking are retrieved`,
                     data,
                 )
             );
@@ -196,6 +199,7 @@ exports.list_post_by_user = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by user are retrieved`,
                     data,
                 )
             );
@@ -269,13 +273,13 @@ exports.create_post = async (req, res, next) => {
     );
 
     Post.create(post)
-    .then(response => {
-        if(response[0]===0){
+    .then(data => {
+        if(data[0]===0){
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
-                    'The response returned is empty'
+                    'The response returned is empty',
                 )
             )
         }
@@ -285,7 +289,7 @@ exports.create_post = async (req, res, next) => {
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
                     'Post is created',
-                    response
+                    data
                 )
             )
         }
