@@ -14,10 +14,6 @@ exports.list_post = (req, res, next) => {
         ],
         include: [
             {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
-            },
-            {
                 model: ParkingParticulier,
             },
             {
@@ -30,6 +26,64 @@ exports.list_post = (req, res, next) => {
         ]
     })
     .then(data => { 
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    data,
+                )
+            );
+        }    
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    })
+}
+
+exports.list_one_post = (req, res) => {
+    const id = req.params.id;
+
+    if (!id) {
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Id can not be empty!`
+            )
+        );
+    }
+
+    Post.findOne({
+        where : {
+            id : id
+        },
+        include: [
+            {
+                model: ParkingParticulier,
+            },
+            {
+                model: Picture,
+            }
+        ]
+    })
+    .then(data => {     
         if(data){
             res.status(HttpStatus.OK.code).send(
                 new Response(
@@ -74,9 +128,12 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 }
             },
             {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
+                model: User,
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
             },
+            {
+                model: Picture
+            }
         ]
     })
     .then(data => {     
@@ -118,11 +175,14 @@ exports.list_post_by_user = (req, res, next) => {
         ],
         include: [
             {
+                model: ParkingParticulier,
+            },
+            {
                 model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture'],
-                where: {
+                where:{
                     id: req.params.id
-                }
+                },
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
             },
             {
                 model: ValidationStatus,
