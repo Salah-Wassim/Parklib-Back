@@ -9,7 +9,9 @@ const Response = require('../utils/response.util.js');
 
 exports.findAllBooking = async (req, res) => {
 
-    const userIdConnected = req.user.id
+    const userIdConnected = req.user.id;
+
+    logger.info(`Fetching all bookings for user with ID ${userIdConnected}`);
 
     Booking.findAll({
         where : {
@@ -18,40 +20,50 @@ exports.findAllBooking = async (req, res) => {
     })
     .then(data =>{
         if(data){
+            logger.info(`Bookings retrieved for user with ID ${userIdConnected}`);
+
             res.status(HttpStatus.OK.code)
             .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
         }
         else{
+            logger.warn(`No bookings found for user with ID ${userIdConnected}`);
+
             res.status(HttpStatus.NOT_FOUND.code)
-            .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message));
+               .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message, `Bookings not found`, data));
         }
     })    
     .catch(err => {
+        logger.error(`Error while retrieving bookings for user with ID ${userIdConnected}: ${err.message}`);
+
         res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
         .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
-    })
-}
+    });
+};
 
 exports.findOneBooking = async (req, res) => {
 
     const id = req.params.id;
+    const userIdConnected = req.user.id;
 
-    const userIdConnected = req.user.id
+    logger.info(`Fetching booking with ID ${id}`);
 
     const booking = await Booking.findOne({
         where : {
             id: id
         }
-    })
+    });
 
     if(userIdConnected !== booking.UserId){
+        logger.warn(`Unauthorized access to booking with ID ${id} by user with ID ${userIdConnected}`);
+
         res.status(HttpStatus.FORBIDDEN.code).send(
             new Response(
                 HttpStatus.FORBIDDEN.code,
                 HttpStatus.FORBIDDEN.message,
-                "You're not the owner of this booking"
+                "You're not the owner of this booking",
+                booking
             )
-        )
+        );
     }
 
     Booking.findOne({
@@ -61,18 +73,26 @@ exports.findOneBooking = async (req, res) => {
     })
     .then((data) => {
         if(data){
+            logger.info(`Booking with ID ${id} retrieved`);
+
             res.status(HttpStatus.OK.code)
-            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
+            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Booking retrieved`, data));
         } else{
+            logger.warn(`No booking found with ID ${id}`);
+
             res.status(HttpStatus.NOT_FOUND.code)
-            .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message));
+               .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message,`Booking not found`, data));
         }
     })
     .catch((err) => {
+        logger.error(`Error while retrieving booking with ID ${id}: ${err.message}`);
+
         res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
+        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,
+            `Some error occurred while retrieving bookings.`, err));
     });
-}
+};
+
 
 exports.createBooking = async (req, res) => {
 
@@ -81,6 +101,7 @@ exports.createBooking = async (req, res) => {
     const {PostId} = req.body
 
     if (!PostId) {
+        logger.warn('The post ID is missing in the body of the request');
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
                 HttpStatus.BAD_REQUEST.code,
@@ -93,6 +114,7 @@ exports.createBooking = async (req, res) => {
     const parsePostId = parseInt(PostId);
 
     if (isNaN(parsePostId)) {
+        logger.warn('The post ID is not a valid number');
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
                 HttpStatus.BAD_REQUEST.code,
@@ -105,14 +127,15 @@ exports.createBooking = async (req, res) => {
     const post = await Post.findByPk(parsePostId);
 
     if (!post) {
+        logger.warn('The selected ad does not exist');
         res.status(HttpStatus.NOT_FOUND.code).send(
             new Response(
-                HttpStatus.NOT_FOUND.code,
-                HttpStatus.NOT_FOUND.message,
-                "The selected ad does not exist"
-            )
-        );
-    }
+            HttpStatus.NOT_FOUND.code,
+            HttpStatus.NOT_FOUND.message,
+            "The selected ad does not exist"
+        )
+    );
+}
 
     const start_date = req.body.start_date;
     const end_date = req.body.end_date;
@@ -128,6 +151,7 @@ exports.createBooking = async (req, res) => {
 
     for(let value in booking){
         if(!booking[value]){
+            logger.warn('Content can not be empty!');
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
@@ -145,6 +169,7 @@ exports.createBooking = async (req, res) => {
     })
 
     if(userIdConnected === parkingParticulier.UserId){
+        logger.warn('You cannot create a booking because you are the owner of the post selected.');
         res.status(HttpStatus.FORBIDDEN.code).send(
             new Response(
                 HttpStatus.FORBIDDEN.code,
@@ -156,8 +181,9 @@ exports.createBooking = async (req, res) => {
 
     Booking.create(booking)
     .then(async (response) => {
-        console.log(response)
+        logger.info('Booking created');
         if(response[0] === 0){
+            logger.warn('The response returned is empty');
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
@@ -167,82 +193,86 @@ exports.createBooking = async (req, res) => {
             )
         }
 
-        const role = await Role.findOne({ where: { title: "Locataire" } });
-        const booking = await Booking.findAll({where : {UserId : userIdConnected}});
-        console.log("booking", booking);
+    const role = await Role.findOne({ where: { title: "Locataire" } });
+    const booking = await Booking.findAll({where : {UserId : userIdConnected}});
 
-        if(booking.length == 1){
-            if(role){
-                let roleUser = {};
-                roleUser = {
-                    UserId: userIdConnected ? userIdConnected : null,
-                    RoleId: role.id ? role.id : null
-                }
-                for(value in roleUser){
-                    if(!roleUser[value]){
-                        res.status(HttpStatus.BAD_REQUEST.code).send(
-                            new Response(
-                                HttpStatus.BAD_REQUEST.code,
-                                HttpStatus.BAD_REQUEST.message,
-                                'Content cannot be empty'
-                            )
-                        )
-                    }
-                }
-                RoleUser.create(roleUser)
-                .then(data => {
-                    if(data[0]===0){
-                        res.status(HttpStatus.NOT_FOUND.code).send(
-                            new Response(
-                                HttpStatus.NOT_FOUND.code,
-                                HttpStatus.NOT_FOUND.message,
-                                'Any response for RoleUser was returned'
-                            )
-                        )
-                    }
-                    res.status(HttpStatus.CREATED.code).send(
-                        new Response(
-                            HttpStatus.CREATED.code,
-                            HttpStatus.CREATED.message,
-                            'Booking and role user is created',
-                            response
-                        )
-                    )
-                })
-                .catch(err => {
-                    console.log("err1", err);
-                    res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                        new Response(
-                            HttpStatus.INTERNAL_SERVER_ERROR.code,
-                            HttpStatus.INTERNAL_SERVER_ERROR.message,
-                            'An internal error has occurred'
-                        )
-                    )
-                })
+    if(booking.length == 1){
+        if(role){
+            let roleUser = {};
+            roleUser = {
+                UserId: userIdConnected ? userIdConnected : null,
+                RoleId: role.id ? role.id : null
             }
-            else{
-                res.status(HttpStatus.NOT_FOUND.code).send(
+            for(value in roleUser){
+                if(!roleUser[value]){
+                    logger.warn('Content cannot be empty');
+                    res.status(HttpStatus.BAD_REQUEST.code).send(
+                        new Response(
+                            HttpStatus.BAD_REQUEST.code,
+                            HttpStatus.BAD_REQUEST.message,
+                            'Content cannot be empty'
+                        )
+                    )
+                }
+            }
+            RoleUser.create(roleUser)
+            .then(data => {
+                if(data[0]===0){
+                    logger.warn('Any response for RoleUser was returned');
+                    res.status(HttpStatus.NOT_FOUND.code).send(
+                        new Response(
+                            HttpStatus.NOT_FOUND.code,
+                            HttpStatus.NOT_FOUND.message,
+                            'Any response for RoleUser was returned'
+                        )
+                    )
+                }
+                logger.info('Booking and role user is created');
+                res.status(HttpStatus.CREATED.code).send(
                     new Response(
-                        HttpStatus.NOT_FOUND.code,
-                        HttpStatus.NOT_FOUND.message,
-                        `Any role ${role.title} was found`
+                        HttpStatus.CREATED.code,
+                        HttpStatus.CREATED.message,
+                        'Booking and role user is created',
+                        response
                     )
                 )
-            }
+            })
+            .catch(err => {
+                logger.error('An internal error has occurred');
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                        'An internal error has occurred'
+                    )
+                )
+            })
         }
         else{
-            res.status(HttpStatus.CREATED.code).send(
+            logger.warn(`Any role ${role.title} was found`);
+            res.status(HttpStatus.NOT_FOUND.code).send(
                 new Response(
-                    HttpStatus.CREATED.code,
-                    HttpStatus.CREATED.message,
-                    'Booking is created',
-                    response
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                    `Any role ${role.title} was found`
                 )
             )
-        }        
-    })
+        }
+    }
+    else{
+        logger.info('Booking is created');
+        res.status(HttpStatus.CREATED.code).send(
+            new Response(
+                HttpStatus.CREATED.code,
+                HttpStatus.CREATED.message,
+                'Booking is created',
+                response
+            )
+        )
+    }        
+})
     .catch (error => {
-        console.log("error", error);
+        logger.error('Some error occurred while creating the account');
         if (error.name === 'SequelizeUniqueConstraintError') {
             res.status(HttpStatus.CONFLICT.code).send(
                 new Response(
@@ -276,10 +306,8 @@ exports.deleteBooking = async (req, res) => {
         }
     });
 
-    console.log("userBookingId", userBookingId);
-    console.log("userIdConnected", userIdConnected)
-
     if(userIdConnected !== userBookingId.UserId){
+        logger.warn("You're not the owner of this booking");
         res.status(HttpStatus.FORBIDDEN.code).send(
             new Response(
                 HttpStatus.FORBIDDEN.code,
@@ -296,72 +324,80 @@ exports.deleteBooking = async (req, res) => {
     })
     .then(async (data) => {
         if(data){
+            logger.info("Booking deleted");
             const booking = await Booking.findAll({where : {UserId : userIdConnected}})
             if(booking.length == 0){
                 const roleUsers = await RoleUser.findAll({where : {UserId : userIdConnected}});
                 if(roleUsers){
                     const findRoleId = roleUsers.find(roleUser => roleUser.RoleId === 1);
-                    console.log("findRoleId", findRoleId);
                     if(findRoleId && findRoleId.RoleId){
                         RoleUser.destroy({where : {RoleId : findRoleId.RoleId}})
                         .then(() => {
+                            logger.info("RoleUser deleted");
                             res.status(HttpStatus.NO_CONTENT.code).send(
                                 new Response(
                                     HttpStatus.NO_CONTENT.code,
                                     HttpStatus.NO_CONTENT.message, 
+                                    )
+                                );
+                            })
+                        }
+                        else{
+                            logger.warn(`Cannot found RoleUser with this RoleId value ${findRoleId.RoleId}`);
+                            res.status(HttpStatus.NOT_FOUND.code).send(
+                                new Response(
+                                    HttpStatus.NOT_FOUND.code,
+                                    HttpStatus.NOT_FOUND.message, 
+                                    `Cannot found RoleUser with this RoleId value ${findRoleId.RoleId}`
                                 )
                             );
-                        })
+                        }
                     }
                     else{
+                        logger.warn(`Cannot found RoleUser with this UserId value ${userIdConnected}`);
                         res.status(HttpStatus.NOT_FOUND.code).send(
                             new Response(
                                 HttpStatus.NOT_FOUND.code,
                                 HttpStatus.NOT_FOUND.message, 
-                                `Cannot found RoleUser with this RoleId value ${findRoleId.RoleId}`
+                                `Cannot found RoleUser with this UserId value ${userIdConnected}`
                             )
                         );
                     }
                 }
                 else{
-                    res.status(HttpStatus.NOT_FOUND.code).send(
+                    logger.info("Booking deleted");
+                    res.status(HttpStatus.NO_CONTENT.code).send(
                         new Response(
-                            HttpStatus.NOT_FOUND.code,
-                            HttpStatus.NOT_FOUND.message, 
-                            `Cannot found RoleUser with this UserId value ${userIdConnected}`
+                            HttpStatus.NO_CONTENT.code,
+                            HttpStatus.NO_CONTENT.message, 
                         )
                     );
                 }
-            }
+            } 
             else{
-                res.status(HttpStatus.NO_CONTENT.code).send(
+                logger.warn("Booking not found");
+                res.status(HttpStatus.NOT_FOUND.code).send(
                     new Response(
-                        HttpStatus.NO_CONTENT.code,
-                        HttpStatus.NO_CONTENT.message, 
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message, 
+                        `Booking not found`
                     )
                 );
             }
-        } 
-        else{
-            res.status(HttpStatus.NOT_FOUND.code).send(
+        })
+        .catch(err => {
+            logger.error("An error occurred while deleting the reservation");
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
                 new Response(
-                    HttpStatus.NOT_FOUND.code,
-                    HttpStatus.NOT_FOUND.message, 
-                    `Booking not found`
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    `An error occurred while deleting the reservation`, err
                 )
             );
-        }
-    })
-    .catch(err => {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-            new Response(
-                HttpStatus.INTERNAL_SERVER_ERROR.code,
-                HttpStatus.INTERNAL_SERVER_ERROR.message,
-                `An error occurred while deleting the reservation`, err
-            )
-        );
-    }) 
-}
+        }) 
+    }
+    
+
 
 // exports.updateBooking = (req, res) => {
 //     const updateBooking = {
