@@ -2,13 +2,13 @@ version: '3.9'
 
 services:
   api:
-    build: .
+    build: ./
     container_name: node-api
     ports:
       - ${PORT}:${PORT}
     volumes:
+      - nodeModule:/app/node_modules
       - .:/app
-      - /app/node_modules
     depends_on:
       - cache
     links:
@@ -24,7 +24,7 @@ services:
     container_name: redis-cache 
     restart: always
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:6379
     depends_on:
       - db
     volumes: 
@@ -62,3 +62,4 @@ services:
 volumes:
   dbdata:
   cache:
+  nodeModule:
