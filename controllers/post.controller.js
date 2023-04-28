@@ -17,10 +17,6 @@ exports.list_post = (req, res, next) => {
         ],
         include: [
             {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
-            },
-            {
                 model: ParkingParticulier,
             },
             {
@@ -38,6 +34,66 @@ exports.list_post = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post are retrieved`,
+                    data,
+                )
+            );
+        }    
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    })
+}
+
+exports.list_one_post = (req, res) => {
+    const id = req.params.id;
+
+    if (!id) {
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Id can not be empty!`
+            )
+        );
+    }
+
+    Post.findOne({
+        where : {
+            id : id
+        },
+        include: [
+            {
+                model: ParkingParticulier,
+            },
+            {
+                model: Picture,
+            }
+        ]
+    })
+    .then(data => {     
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    `Post are retrieved`,
                     data,
                 )
             );
@@ -77,9 +133,12 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 }
             },
             {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
+                model: User,
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
             },
+            {
+                model: Picture
+            }
         ]
     })
     .then(data => {     
@@ -88,6 +147,7 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by parking are retrieved`,
                     data,
                 )
             );
@@ -121,11 +181,14 @@ exports.list_post_by_user = (req, res, next) => {
         ],
         include: [
             {
+                model: ParkingParticulier,
+            },
+            {
                 model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture'],
-                where: {
+                where:{
                     id: req.params.id
-                }
+                },
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
             },
             {
                 model: ValidationStatus,
@@ -139,6 +202,7 @@ exports.list_post_by_user = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by user are retrieved`,
                     data,
                 )
             );
@@ -212,13 +276,13 @@ exports.create_post = async (req, res, next) => {
     );
 
     Post.create(post)
-    .then(response => {
-        if(response[0]===0){
+    .then(data => {
+        if(data[0]===0){
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
-                    'The response returned is empty'
+                    'The response returned is empty',
                 )
             )
         }
@@ -231,7 +295,7 @@ exports.create_post = async (req, res, next) => {
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
                     'Post is created',
-                    response
+                    data
                 )
             )
         }
