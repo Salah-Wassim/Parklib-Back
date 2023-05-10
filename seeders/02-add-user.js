@@ -36,6 +36,18 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
+      {
+        firstName: "Salah",
+        lastName:"Arfa",
+        password:'salah06.',
+        phone:"0642724434",
+        picture: "image",
+        address: "36 rue de la cité des Pins",
+        email: "salahwassim.arfae1@gmal.com",
+        isActivated: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     ])
   },
 

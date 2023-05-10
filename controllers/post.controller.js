@@ -5,60 +5,61 @@ const User = require("../models").User;
 const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
+const { getCache, setCache } = require('../redis/cache')
 
 const SocketIoService = require('../services/socketIo.service.js');
 const logger = require("../utils/logger.util.js");
 
+exports.list_post = async (req, res, next) => {
 
-exports.list_post = (req, res, next) => {
-    Post.findAll({
-        order : [
-            ['price', 'DESC']
-        ],
-        include: [
-            {
-                model: ParkingParticulier,
-            },
-            {
-                model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
-            },
-            {
-                model: Picture
+        Post.findAll({
+            order : [
+                ['price', 'DESC']
+            ],
+            include: [
+                {
+                    model: ParkingParticulier,
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
+                },
+                {
+                    model: Picture
+                }
+            ]
+        })
+        .then( async (data) => { 
+            if(data){
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `All post are retrieved`,
+                        data,
+                    )
+                );
+            }    
+        })
+        .catch(err => {
+            console.error(err);
+            if(err.name === "'SequelizeUniqueConstraintError'"){
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                    )
+                )
             }
-        ]
-    })
-    .then(data => { 
-        if(data){
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `All post are retrieved`,
-                    data,
+            else{
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    )
                 )
-            );
-        }    
-    })
-    .catch(err => {
-        console.error(err);
-        if(err.name === "'SequelizeUniqueConstraintError'"){
-            res.status(HttpStatus.NOT_FOUND.code).send(
-                new Response(
-                    HttpStatus.NOT_FOUND.code,
-                    HttpStatus.NOT_FOUND.message,
-                )
-            )
-        }
-        else{
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                )
-            )
-        }
-    })
+            }
+        })
 }
 
 exports.list_one_post = (req, res) => {

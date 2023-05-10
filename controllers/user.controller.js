@@ -5,12 +5,15 @@ const logger = require('../utils/logger.util.js');
 const HttpStatus = require('../utils/httpStatus.util.js');
 const Response = require('../utils/response.util.js');
 const UUID = require('uuid');
+const { getCache, setCache } = require('../redis/cache')
 
-exports.findAllUser = (req, res) => {
+exports.findAllUser = async (req, res) => {
     const isActivated = req.query.isActivated??true;
     logger.info(`${req.method} ${req.originalUrl}, Fetching users.`);
-    User.findAll({where: {isActivated: isActivated}, order: [['createdAt', 'DESC']]})
-        .then(data => {
+    //const cachedUsers = await getCache('users');
+        User.findAll({where: {isActivated: isActivated}, order: [['createdAt', 'DESC']]})
+        .then(async(data) => {
+            //await setCache('users', data);
             const users = data.map(user => {
                 const {password, ...userWithoutPassword} = user.dataValues;
                 return userWithoutPassword;

@@ -5,7 +5,7 @@ const logger = require("./utils/logger.util.js");
 const HttpStatus = require("./utils/httpStatus.util.js");
 const Response = require("./utils/response.util.js");
 const Http = require('http');
-const SocketIo= require('socket.io');
+const SocketIo = require('socket.io');
 const SocketIoService = require('./services/socketIo.service.js');
 
 const parkingParticulierRouter = require("./routes/parkingParticulier.router.js");
@@ -17,6 +17,7 @@ global.__basedir = __dirname;
 /**
  * IMPORTATION DES ROUTES
  */
+
 const appRouter = require("./routes/app.router.js");
 const authRouter = require("./routes/auth.router.js");
 const userRouter = require("./routes/user.router.js");
@@ -26,10 +27,10 @@ const roleRouter = require("./routes/role.router");
 const pictureRouter = require("./routes/picture.router.js");
 const validationStatusRouter = require("./routes/validationStatus.router");
 
-
 /**
  * IMPORTATION DES MIDDLEWARES
  */
+
 const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/post_picture', express.static('post_picture'));
 /**
  * IO
  */
+
 const server = Http.Server(app);
 const io = SocketIo(server, {
     transports:['websocket'],
@@ -54,6 +56,14 @@ const io = SocketIo(server, {
 });
 
 new SocketIoService(io);
+io.on('connection', (socket) => {
+    console.log("socket", socket)
+    // Gestion des connexions Socket.IO
+    socket.on('parkingAdded', (parking) => {
+        console.log("parking", parking)
+        io.emit('newParking', parking);
+    });
+})
 
 /**
  * ROUTES

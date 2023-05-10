@@ -25,6 +25,19 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },
+    {
+      title : "zertyuiop",
+      description : "blabla",
+      price : 100,
+      typeOfPlace: 'souterrain',
+      contact : 'email',
+      isAssured: true,
+      UserId:3,
+      ParkingParticulierId:2,
+      ValidationStatusId:2,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
    ])
   },
 

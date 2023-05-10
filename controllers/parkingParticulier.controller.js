@@ -1,41 +1,53 @@
 const ParkingParticulier = require("../models").ParkingParticulier;
+const Post  = require('../models').Post;
 const logger = require("../utils/logger.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
+const { getCache, setCache } = require('../redis/cache.js');
 
 // const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
-exports.findAllParkingParticulier = (req, res) => {
+exports.findAllParkingParticulier = async (req, res) => {
     logger.info(
         `${req.method} ${req.originalUrl}, Fetching ALL parkings particuliers.`
     );
-    ParkingParticulier.findAll({
-        order: [["createdAt", "DESC"]],
-    })
-        .then((data) => {
-            const parkingParticulierAllList = data.map((parking) => {
-                return parking;
-            });
-            if(data){
-                res.status(HttpStatus.OK.code).send(
-                    new Response(
-                        HttpStatus.OK.code,
-                        HttpStatus.OK.message,
-                        `ParkingParticuliers retrieved`,
-                        parkingParticulierAllList
-                    )
-                );
-            }
-            else{
-                res.status(HttpStatus.NOT_FOUND.code).send(
-                    new Response(
-                        HttpStatus.NOT_FOUND.code,
-                        HttpStatus.NOT_FOUND.message,
-                        `ParkingParticuliers not found`,
-                    )
-                );
+    
+        /// Intéger la requête qui récupére les parkings
+        ParkingParticulier.findAll({
+            order: [["createdAt", "DESC"]],
+            include: [
+                {
+                    model: Post
+                }
+            ]
+        })
+        .then( async (data) => {
+            if(data) {
+                //await setCache("parkings", data);
+                const parkingParticulierAllList = data.map((parking) => {
+                    return parking;
+                });
+                if(parkingParticulierAllList){
+                    res.status(HttpStatus.OK.code).send(
+                        new Response(
+                            HttpStatus.OK.code,
+                            HttpStatus.OK.message,
+                            `ParkingParticuliers retrieved`,
+                            parkingParticulierAllList
+                        )
+                    );
+                }
+                else{
+                    res.status(HttpStatus.NOT_FOUND.code).send(
+                        new Response(
+                            HttpStatus.NOT_FOUND.code,
+                            HttpStatus.NOT_FOUND.message,
+                            `ParkingParticuliers not found`,
+                        )
+                    );
+                }
             }
         })
         .catch((err) => {
@@ -46,7 +58,7 @@ exports.findAllParkingParticulier = (req, res) => {
                     `Some error occurred while retrieving parkings`
                 )
             );
-        });
+        })   
 };
 
 exports.findOneParkingParticulier = (req, res) => {
