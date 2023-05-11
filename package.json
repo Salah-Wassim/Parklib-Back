@@ -5,7 +5,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all",
+    "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all ",
+    "db:reset:dev": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all && nodemon app.js",
     "start:dev": "nodemon app.js",
     "start:prod": "node app.js"
   },
@@ -35,6 +36,7 @@
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1",
     "sequelize": "^6.25.3",
+    "socket.io": "^4.6.1",
     "util": "^0.12.5",
     "uuid": "^9.0.0"
   },

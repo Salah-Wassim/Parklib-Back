@@ -37,7 +37,9 @@ let upload = uploadFile.single('picture');
 
 const userController = require("../controllers/user.controller.js");
 
-router.get("/", userController.findAllUser);
+router.get("/", (req, res) => {
+    userController.findAllUser(req, res)
+});
 router.get("/:id", userController.findOneUser);
 router.put("/:id", authenticateJWT, userController.updateUser);
 router.put("/:id/reset-password", authenticateJWT, userController.updatePassword);

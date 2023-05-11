@@ -6,16 +6,16 @@ const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 
+const SocketIoService = require('../services/socketIo.service.js');
+const logger = require("../utils/logger.util.js");
+
+
 exports.list_post = (req, res, next) => {
     Post.findAll({
         order : [
             ['price', 'DESC']
         ],
         include: [
-            {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
-            },
             {
                 model: ParkingParticulier,
             },
@@ -34,6 +34,66 @@ exports.list_post = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post are retrieved`,
+                    data,
+                )
+            );
+        }    
+    })
+    .catch(err => {
+        console.error(err);
+        if(err.name === "'SequelizeUniqueConstraintError'"){
+            res.status(HttpStatus.NOT_FOUND.code).send(
+                new Response(
+                    HttpStatus.NOT_FOUND.code,
+                    HttpStatus.NOT_FOUND.message,
+                )
+            )
+        }
+        else{
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
+                )
+            )
+        }
+    })
+}
+
+exports.list_one_post = (req, res) => {
+    const id = req.params.id;
+
+    if (!id) {
+        res.status(HttpStatus.BAD_REQUEST.code).send(
+            new Response(
+                HttpStatus.BAD_REQUEST.code,
+                HttpStatus.BAD_REQUEST.message,
+                `Id can not be empty!`
+            )
+        );
+    }
+
+    Post.findOne({
+        where : {
+            id : id
+        },
+        include: [
+            {
+                model: ParkingParticulier,
+            },
+            {
+                model: Picture,
+            }
+        ]
+    })
+    .then(data => {     
+        if(data){
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    `Post are retrieved`,
                     data,
                 )
             );
@@ -73,9 +133,12 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 }
             },
             {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
+                model: User,
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
             },
+            {
+                model: Picture
+            }
         ]
     })
     .then(data => {     
@@ -84,6 +147,7 @@ exports.list_post_by_parkingParticulier = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by parking are retrieved`,
                     data,
                 )
             );
@@ -117,11 +181,14 @@ exports.list_post_by_user = (req, res, next) => {
         ],
         include: [
             {
+                model: ParkingParticulier,
+            },
+            {
                 model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture'],
-                where: {
+                where:{
                     id: req.params.id
-                }
+                },
+                attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
             },
             {
                 model: ValidationStatus,
@@ -135,6 +202,7 @@ exports.list_post_by_user = (req, res, next) => {
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
+                    `All post by user are retrieved`,
                     data,
                 )
             );
@@ -163,7 +231,8 @@ exports.list_post_by_user = (req, res, next) => {
 
 exports.create_post = async (req, res, next) => {
 
-    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const user = req.user
 
     if(!ParkingParticulierId){
         res.status(HttpStatus.FORBIDDEN.code).send(
@@ -178,47 +247,55 @@ exports.create_post = async (req, res, next) => {
     let post = {};
 
     post= {
-        title : title && typeof(title)==="string" ? post.title = title : "",
-        description: description && typeof(description)==="string" ? post.description = description : "",
-        price : price && typeof(price)==="number" ? post.price = price : null,
-        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : false,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
-        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? post.ValidationStatusId = ValidationStatusId : 1,
-        ParkingParticulierId : ParkingParticulierId && typeof(ParkingParticulierId)==="number" ? post.ParkingParticulierId = ParkingParticulierId : null
+        title : title && typeof(title)==="string" ? title : "",
+        description: description && typeof(description)==="string" ? description : "",
+        price : price && typeof(price)==="number" ? price : null,
+        contact : contact && typeof(contact)==="string" ? contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        UserId: user.id && typeof(user.id) === "number" ? user.id : null
     }
 
     for(value in post){
-        if(!post[value]){
+        if(!post[value] && (value != 'isAssured')){
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
                     'All attributs must be filled or type of attributs is incorrect',
-                    `${value}: ${post[value]}`
+                    `${value}: ${post[value]} , ${typeof(post['value'])}`
                 )
             )
         }
     }
 
+    logger.info(
+        `${req.method} ${req.originalUrl}, Creating new post.`
+    );
+
     Post.create(post)
-    .then(response => {
-        if(response[0]===0){
+    .then(data => {
+        if(data[0]===0){
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
                     HttpStatus.BAD_REQUEST.code,
                     HttpStatus.BAD_REQUEST.message,
-                    'The response returned is empty'
+                    'The response returned is empty',
                 )
             )
         }
         else {
+
+            SocketIoService.socket.broadcast.emit('message', `${req.method} ${req.originalUrl}, Fetching users.`);
+    
             res.status(HttpStatus.CREATED.code).send(
                 new Response(
                     HttpStatus.CREATED.code,
                     HttpStatus.CREATED.message,
                     'Post is created',
-                    post
+                    data
                 )
             )
         }
@@ -256,21 +333,25 @@ exports.edit_post = async (req, res, next) => {
         )
     }
 
-    const {title, description, price, contact, isAssured, typeOfPlace} = req.body
+    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId} = req.body
+    const user = req.user
 
     let post = {};
 
     post = {
-        title : title && typeof(title)==="string" ? post.title = title : "",
-        description: description && typeof(description)==="string" ? post.description = description : "",
-        price : price && typeof(price)==="number" ? post.price = price : null,
-        contact : contact && typeof(contact)==="string" ? post.contact = contact : "",
-        isAssured : isAssured && typeof(isAssured)==="boolean" ? post.isAssured = isAssured : null,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? post.typeOfPlace = typeOfPlace : "",
+        title : title && typeof(title)==="string" ? title : "",
+        description: description && typeof(description)==="string" ? description : "",
+        price : price && typeof(price)==="number" ? price : null,
+        contact : contact && typeof(contact)==="string" ? contact : "",
+        isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
+        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        UserId: user.id && typeof(user.id) === "number" ? user.id : null
     };
 
     for(value in post){
-        if(!post[value]){
+        if(!post[value] && (value != 'isAssured')){
             console.error('bad request')
             res.status(HttpStatus.BAD_REQUEST.code).send(
                 new Response(
