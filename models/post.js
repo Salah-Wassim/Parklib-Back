@@ -25,6 +25,8 @@ module.exports = (sequelize, DataTypes) => {
     typeOfPlace : DataTypes.STRING,
     contact: DataTypes.STRING,
     isAssured: DataTypes.BOOLEAN,
+    startDate: DataTypes.DATE,
+    endDate: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'Post',

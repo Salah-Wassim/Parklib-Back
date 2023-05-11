@@ -22,9 +22,11 @@ module.exports = {
       UserId:1,
       ParkingParticulierId:1,
       ValidationStatusId:1,
+      startDate:new Date(2023, 4, 22, 8 , 0 , 0), // the month is 0-indexed
+      endDate:new Date(2023, 8, 22, 12 , 30 , 0), // the month is 0-indexed
       createdAt: new Date(),
       updatedAt: new Date()
-    },
+     },
    ])
   },
 

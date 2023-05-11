@@ -231,7 +231,7 @@ exports.list_post_by_user = (req, res, next) => {
 
 exports.create_post = async (req, res, next) => {
 
-    const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
+    const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId, startDate, endDate } = req.body
     const user = req.user
 
     if(!ParkingParticulierId){
@@ -246,6 +246,13 @@ exports.create_post = async (req, res, next) => {
 
     let post = {};
 
+    console.log(typeof(endDate));
+    console.log(endDate);
+    const startDateMoment = new Date(startDate);
+    const endDateMoment = new Date(endDate);
+    console.log(typeof(endDateMoment));
+    console.log(endDateMoment);
+
     post= {
         title : title && typeof(title)==="string" ? title : "",
         description: description && typeof(description)==="string" ? description : "",
@@ -253,6 +260,8 @@ exports.create_post = async (req, res, next) => {
         contact : contact && typeof(contact)==="string" ? contact : "",
         isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
         typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        startDate : startDateMoment && typeof(startDateMoment )==="object" ? startDateMoment : null,
+        endDate : endDateMoment && typeof(endDateMoment )==="object" ? endDateMoment : null,
         ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
         ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
         UserId: user.id && typeof(user.id) === "number" ? user.id : null
@@ -315,6 +324,7 @@ exports.create_post = async (req, res, next) => {
             new Response(
                 HttpStatus.INTERNAL_SERVER_ERROR.code,
                 HttpStatus.INTERNAL_SERVER_ERROR.message,
+                'Une erreur est survenue'
             )
         )
     })
@@ -333,7 +343,7 @@ exports.edit_post = async (req, res, next) => {
         )
     }
 
-    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId} = req.body
+    const {title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId, endDate, startDate} = req.body
     const user = req.user
 
     let post = {};
@@ -344,7 +354,9 @@ exports.edit_post = async (req, res, next) => {
         price : price && typeof(price)==="number" ? price : null,
         contact : contact && typeof(contact)==="string" ? contact : "",
         isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
-        typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
+        typeOfPlace: typeOfPlace && typeof (typeOfPlace) === "string" ? typeOfPlace : "",
+        startDate : startDate && typeof(startDate )==="date" ? startDate : null,
+        endDate : endDate && typeof(endDate )==="date" ? endDate : null,
         ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
         ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
         UserId: user.id && typeof(user.id) === "number" ? user.id : null
