@@ -17,7 +17,7 @@ services:
     environment:
       REDIS_HOST: cache
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${DB_DEV_PASSWORD}
+      REDIS_PASSWORD: ${DB_DEV_PWD}
 
   cache:
     image: redis:alpine
@@ -37,9 +37,9 @@ services:
     ports:
       - 3306:3306
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_DEV_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_DEV_PWD}
       MYSQL_DATABASE: ${DB_DEV_NAME}
-      MYSQL_PASSWORD: ${DB_DEV_PASSWORD}
+      MYSQL_PASSWORD: ${DB_DEV_PWD}
     volumes:
       - dbdata:/var/lib/mysql
   
@@ -54,7 +54,7 @@ services:
       PMA_HOST: mysql-db
       PMA_PORT: 3306
       PMA_ARBITRARY: 1
-      MYSQL_ROOT_PASSWORD: ${DB_DEV_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_DEV_PWD}
     restart: always
     depends_on:
       - db
