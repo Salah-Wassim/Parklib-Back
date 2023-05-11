@@ -25,6 +25,7 @@ const postRouter = require("./routes/post.router.js");
 const roleRouter = require("./routes/role.router");
 const pictureRouter = require("./routes/picture.router.js");
 const validationStatusRouter = require("./routes/validationStatus.router");
+const commentRouter = require("./routes/comment.router");
 
 
 /**
@@ -66,6 +67,7 @@ app.use('/validation-status', validationStatusRouter);
 app.use('/bookings',bookingRouter);
 app.use('/verification',appRouter);
 app.use('/auth', authRouter);
+app.use('/comments', commentRouter);
 app.use('/users',userRouter);
 app.use('/role',roleRouter);
 app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.OK.message ,`Welcome to the Parklib's API, v1.0.0`,{apiDocs:`http://${ip.address()}:${PORT}/api-docs`})));

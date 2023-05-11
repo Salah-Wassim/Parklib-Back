@@ -21,6 +21,11 @@ module.exports = {
       title: "Validé",
       createdAt: new Date(),
       updatedAt: new Date(),
+    },
+    {
+      title: "Rejeté",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
    ])
   },
