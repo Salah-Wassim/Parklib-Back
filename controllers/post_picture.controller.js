@@ -7,7 +7,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
-
+const { getCache, setCache } = require('../redis/cache')
 
 exports.uploadPostPicture = async (req, res) => {
     console.log("Uploading post picture");
@@ -123,13 +123,25 @@ exports.uploadPostPicture = async (req, res) => {
 
 
 
-exports.getPostPicture = (req, res) => {
+exports.getPostPicture = async (req, res) => {
   const pictureId = req.params.id;
 
   logger.info(`Retrieving the post picture with ID ${pictureId}`);
-
-  Picture.findByPk(pictureId, { include: Post })
-    .then(picture => {
+  
+  const cachedPicture = await getCache('pictures');
+  if(cachedPicture){
+      res.status(HttpStatus.OK.code).send(
+          new Response(
+              HttpStatus.OK.code,
+              HttpStatus.OK.message,
+              `Pictures cached retrieved`,
+              cachedPicture
+          )
+      );
+  }
+  else{
+    Picture.findByPk(pictureId, { include: Post })
+    .then(async(picture) => {
       if (!picture) {
         logger.warn(`Picture not found with ID ${pictureId}`);
         return res
@@ -143,6 +155,7 @@ exports.getPostPicture = (req, res) => {
           );
       }
       logger.info(`Picture with ID ${pictureId} retrieved successfully`);
+      await setCache('pictures', picture)
       res.status(HttpStatus.OK.code)
         .send(
           new Response(
@@ -165,6 +178,7 @@ exports.getPostPicture = (req, res) => {
          )
       );
     });
+  }
 };
 
 

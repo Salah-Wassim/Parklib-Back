@@ -6,38 +6,51 @@ const RoleUser = require("../models").RoleUser;
 const HttpStatus = require('../utils/httpStatus.util.js');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
+const { getCache, setCache } = require('../redis/cache')
 
 exports.findAllBooking = async (req, res) => {
 
     const userIdConnected = req.user.id;
 
     logger.info(`Fetching all bookings for user with ID ${userIdConnected}`);
-
-    Booking.findAll({
-        where : {
-            UserId: userIdConnected
-        }
-    })
-    .then(data =>{
-        if(data){
-            logger.info(`Bookings retrieved for user with ID ${userIdConnected}`);
-
-            res.status(HttpStatus.OK.code)
-            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
-        }
-        else{
-            logger.warn(`No bookings found for user with ID ${userIdConnected}`);
-
-            res.status(HttpStatus.NOT_FOUND.code)
-               .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message, `Bookings not found`, data));
-        }
-    })    
-    .catch(err => {
-        logger.error(`Error while retrieving bookings for user with ID ${userIdConnected}: ${err.message}`);
-
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
-    });
+    const cachedBooking = await getCache("bookings");
+    if(cachedBooking){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Bookings cached retrieved`,
+                cachedBooking
+            )
+        );
+    }
+    else{
+        Booking.findAll({
+            where : {
+                UserId: userIdConnected
+            }
+        })
+        .then(async(data) =>{
+            if(data){
+                logger.info(`Bookings retrieved for user with ID ${userIdConnected}`);
+                await setCache("bookings", data)
+                res.status(HttpStatus.OK.code)
+                .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Bookings retrieved`, data));
+            }
+            else{
+                logger.warn(`No bookings found for user with ID ${userIdConnected}`);
+    
+                res.status(HttpStatus.NOT_FOUND.code)
+                   .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message, `Bookings not found`, data));
+            }
+        })    
+        .catch(err => {
+            logger.error(`Error while retrieving bookings for user with ID ${userIdConnected}: ${err.message}`);
+    
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+            .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving bookings.`, err));
+        });
+    }
 };
 
 exports.findOneBooking = async (req, res) => {
@@ -45,13 +58,7 @@ exports.findOneBooking = async (req, res) => {
     const id = req.params.id;
     const userIdConnected = req.user.id;
 
-    logger.info(`Fetching booking with ID ${id}`);
-
-    const booking = await Booking.findOne({
-        where : {
-            id: id
-        }
-    });
+    const booking = await findOne({where : {id: id}})
 
     if(userIdConnected !== booking.UserId){
         logger.warn(`Unauthorized access to booking with ID ${id} by user with ID ${userIdConnected}`);
@@ -61,36 +68,49 @@ exports.findOneBooking = async (req, res) => {
                 HttpStatus.FORBIDDEN.code,
                 HttpStatus.FORBIDDEN.message,
                 "You're not the owner of this booking",
-                booking
             )
         );
     }
 
-    Booking.findOne({
-        where : {
-            id : id
-        }
-    })
-    .then((data) => {
-        if(data){
-            logger.info(`Booking with ID ${id} retrieved`);
-
-            res.status(HttpStatus.OK.code)
-            .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Booking retrieved`, data));
-        } else{
-            logger.warn(`No booking found with ID ${id}`);
-
-            res.status(HttpStatus.NOT_FOUND.code)
-               .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message,`Booking not found`, data));
-        }
-    })
-    .catch((err) => {
-        logger.error(`Error while retrieving booking with ID ${id}: ${err.message}`);
-
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,
-            `Some error occurred while retrieving bookings.`, err));
-    });
+    logger.info(`Fetching booking with ID ${id}`);
+    const cachedOneBooking = await getCache("oneBooking");
+    if(cachedOneBooking){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Booking cached retrieved`,
+                cachedOneBooking
+            )
+        );
+    }
+    else{
+        Booking.findOne({
+            where : {
+                id : id
+            }
+        })
+        .then(async(data) => {
+            if(data){
+                logger.info(`Booking with ID ${id} retrieved`);
+                await setCache("oneBooking", data)
+                res.status(HttpStatus.OK.code)
+                .send(new Response(HttpStatus.OK.code,HttpStatus.OK.message,`Booking retrieved`, data));
+            } else{
+                logger.warn(`No booking found with ID ${id}`);
+    
+                res.status(HttpStatus.NOT_FOUND.code)
+                   .send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message,`Booking not found`, data));
+            }
+        })
+        .catch((err) => {
+            logger.error(`Error while retrieving booking with ID ${id}: ${err.message}`);
+    
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
+            .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,
+                `Some error occurred while retrieving bookings.`, err));
+        });
+    }
 };
 
 

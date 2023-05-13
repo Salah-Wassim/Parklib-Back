@@ -6,6 +6,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const logger = require("../utils/logger.util.js");
 const Response = require('../utils/response.util.js');
+const { getCache, setCache } = require('../redis/cache')
 
 exports.updateProfilePicture = (req, res) => {
   const { id } = req.params;
@@ -118,13 +119,24 @@ exports.updateProfilePicture = (req, res) => {
 };
 
 
-exports.getProfilePicture = (req, res) => {
+exports.getProfilePicture = async(req, res) => {
   const { id } = req.params;
 
   logger.info(`Retrieving the profile picture for the user ${id}`);
-
-  User.findByPk(id)
-    .then(user => {
+  const cachedProfilePicture = await getCache('profilePictures');
+  if(cachedProfilePicture){
+      res.status(HttpStatus.OK.code).send(
+          new Response(
+              HttpStatus.OK.code,
+              HttpStatus.OK.message,
+              `ProfilePictures cached retrieved`,
+              cachedProfilePicture
+          )
+      );
+  }
+  else{
+    User.findByPk(id)
+    .then(async (user) => {
       if (!user) {
         logger.warn(`User not found for ID ${id}`);
         return res.status(HttpStatus.BAD_REQUEST.code)
@@ -148,7 +160,7 @@ exports.getProfilePicture = (req, res) => {
             )
           );
       }
-
+      await setCache('profilePictures', user)
       res.status(HttpStatus.OK.code)
         .send(
           new Response(
@@ -171,6 +183,7 @@ exports.getProfilePicture = (req, res) => {
           )
         );
     });
+  }
 };
 
 

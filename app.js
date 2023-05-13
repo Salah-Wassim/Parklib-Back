@@ -56,14 +56,6 @@ const io = SocketIo(server, {
 });
 
 new SocketIoService(io);
-io.on('connection', (socket) => {
-    console.log("socket", socket)
-    // Gestion des connexions Socket.IO
-    socket.on('parkingAdded', (parking) => {
-        console.log("parking", parking)
-        io.emit('newParking', parking);
-    });
-})
 
 /**
  * ROUTES
@@ -82,7 +74,7 @@ app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.O
 app.all("*", (req, res) => res.status(HttpStatus.NOT_FOUND.code).send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message ,`This route does not exist`)));
 
 server.listen(PORT, () => {
-    logger.info(`Server is running at http://${ip.address()}:${PORT}`);
+    logger.info(`Server is running at http://${process.env.ADR_IPV4}:${PORT}`);
 });
 
 module.exports = server

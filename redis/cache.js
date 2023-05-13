@@ -1,15 +1,9 @@
-const { hostname } = require('os');
 const redis = require('redis');
-const {promisify} = require('util');
 
 // Création d'une instance Redis
 const client = redis.createClient({
     url: 'redis://redis-cache:6379' 
 });
-
-// Conversion des fonctions Redis en promesses
-const getAsync = promisify(client.get).bind(client);
-const setAsync = promisify(client.set).bind(client);
 
 client.on('error', function (err) {
     console.log("client error")
@@ -24,7 +18,6 @@ client.on('error', function (err) {
  * @returns {Promise<Object|null>} - Retourne les données si elles existent, sinon null
  */
 const getCache = async (key) => {
-    console.log("getCache")
     try {
         if (!client.connect()) {
             console.log("!client")
@@ -34,9 +27,10 @@ const getCache = async (key) => {
             });
         }
         console.log('key', key);
-        const cachedData = await getAsync(key);
+        const cachedData = await client.get(key)
         if (cachedData) {
             console.log('Data retrieved from cache');
+            await client.disconnect()
             return JSON.parse(cachedData);
         } else {
             return null;
@@ -59,18 +53,17 @@ const getCache = async (key) => {
 const setCache = async (key, data, time) => {
     console.log("setCache")
     try {
-        if (client.connect()) {
-            await new Promise((resolve, reject) => {
-                client.once('connect', resolve);
-                client.once('error', reject);
-            });
+        if (client.status === "end") {
+            await client.connect()
         }
         const cacheTime = time || 600; // Temps de cache par défaut en secondes
-        await setAsync(key, JSON.stringify(data), 'EX', cacheTime);
+        await client.set(key, JSON.stringify(data), 'EX', cacheTime);
         console.log('Data cached');
+        await client.disconnect();
+        console.log("client disconnect");
     } catch (error) {
         console.error('Redis error: ' + error);
-        client.disconnect();
+        await client.disconnect();
         await client.connect();
         throw error;
     }
