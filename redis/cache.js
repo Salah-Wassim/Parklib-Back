@@ -30,8 +30,14 @@ const getCache = async (key) => {
         const cachedData = await client.get(key)
         if (cachedData) {
             console.log('Data retrieved from cache');
-            await client.disconnect()
-            return JSON.parse(cachedData);
+            await client.disconnect();
+            const parsedData = JSON.parse(cachedData);
+            if (Array.isArray(parsedData)) {
+              return parsedData;
+            } else {
+              console.error('Invalid cached data format');
+              return null;
+            }
         } else {
             return null;
         }
@@ -51,16 +57,17 @@ const getCache = async (key) => {
  * @returns {Promise<void>}
  */
 const setCache = async (key, data, time) => {
-    console.log("setCache")
     try {
         if (client.status === "end") {
             await client.connect()
         }
-        const cacheTime = time || 600; // Temps de cache par défaut en secondes
-        await client.set(key, JSON.stringify(data), 'EX', cacheTime);
-        console.log('Data cached');
-        await client.disconnect();
-        console.log("client disconnect");
+        const cacheTime = time || 60; // Temps de cache par défaut en secondes
+        const setData = await client.setEx(key, cacheTime, JSON.stringify(data));
+        if(setData){
+            console.log('Data cached');
+            await client.disconnect();
+            console.log("client disconnect");
+        }
     } catch (error) {
         console.error('Redis error: ' + error);
         await client.disconnect();
