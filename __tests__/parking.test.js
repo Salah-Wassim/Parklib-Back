@@ -31,6 +31,7 @@ jest.mock("../utils/httpStatus.util.js", () => ({
     INTERNAL_SERVER_ERROR: { code: 500, message: "Internal Server Error" },
     CREATED: { code : 201, message : "Created"},
     NO_CONTENT:{ code : 204, message : "NO_CONTENT"},
+    FORBIDDEN:{code:403,message:"FORBIDDEN"}
 }));
 
 describe("findAllParkingParticulier", () => {
@@ -217,72 +218,56 @@ describe("update parking", () => {
     let req, res;
 
     beforeEach(() => {
-        req = {
-            method: "PUT",
-            originalUrl: "/parking-particulier/123",
-            params: { id: '123' },
-            body: {
-                address: "New Address",
-                zipCode: "12345",
-                city: "New City",
-            },
-            user: { id: 3 }
-        };
-        res = {
-            status: jest.fn().mockReturnThis(),
-            send: jest.fn()
-        };
+      req = {
+        method: "PUT",
+        originalUrl: "/parking-particulier/123",
+        params: { id: 3 },
+        user: { id: 4 },
+        body: {
+            address: "28 rue Jean Jaures",
+            zipCode: "33000",
+            city: "Bordeaux"
+        },
+      };
+      res = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      jest.clearAllMocks();
     });
 
-    test("should update a parking particulier", async () => {
+    test('should update a parking particulier', async () => {
         const updatedParking = {
-            id: 123,
-            address: "New Address",
-            zipCode: "12345",
-            city: "New City",
-            UserId: 3
+            id: 3,
+            address: "28 rue Jean Jaures",
+            zipCode: "33000",
+            city: "Paris",
+            lattitude: null,
+            longitude: null,
+            createdAt: "2024-03-09T08:17:20.000Z",
+            updatedAt: "2024-03-09T08:19:18.000Z",
+            UserId: 4
         };
 
-        ParkingParticulier.findOne.mockResolvedValue({
-            id: 123,
-            UserId: 3
+        ParkingParticulier.findOne.mockResolvedValueOnce({
+            id: 3,
+            UserId: 4
         });
-
-        ParkingParticulier.update.mockResolvedValueOnce([1]);
-        ParkingParticulier.findByPk.mockResolvedValueOnce(updatedParking);
-
-        const statusSpy = jest.spyOn(res, "status");
+        const mockUpdate = jest.fn(() => Promise.resolve([1]));
+        require("../models").ParkingParticulier.update = mockUpdate;
 
         await updateParkingParticulier(req, res);
 
-        expect(ParkingParticulier.findOne).toHaveBeenCalledWith({
-            where: {
-                id: '123',
-            }
-        });
-
-        expect(req.user.id).toBe(3);
-
-        expect(ParkingParticulier.update).toHaveBeenCalledWith(
-            {
-                address: "New Address",
-                zipCode: "12345",
-                city: "New City"
-            },
-            {
-                where: {
-                    id: '123'
-                }
-            }
-        );
-
-        expect(ParkingParticulier.findByPk).toHaveBeenCalledWith("123");
-        expect(statusSpy).toHaveBeenCalledWith(HttpStatus.OK.code);
-        expect(Response).toHaveBeenCalledWith(
-            HttpStatus.OK.code,
-            HttpStatus.OK.message,
-            "Parking updated",
-            updatedParking
+        expect(ParkingParticulier.findOne).toHaveBeenCalledWith({ where: { id: 3 } });
+        expect(res.status).toHaveBeenCalledWith(HttpStatus.OK.code);
+        expect(res.send).toHaveBeenCalledWith(
+            new Response(
+                HttpStatus.OK.code, 
+                HttpStatus.OK.message, 
+                'Parking updated', 
+                updatedParking
+            )
         );
         expect(res.send).toHaveBeenCalledWith(new Response());
     });

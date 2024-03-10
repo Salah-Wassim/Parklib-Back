@@ -26,7 +26,6 @@ exports.findAllParkingParticulier = async (req, res) => {
         );
     }
     else{
-        /// Intéger la requête qui récupére les parkings
         try{
             const data = await ParkingParticulier.findAll({
                 order: [["createdAt", "DESC"]],
@@ -38,28 +37,24 @@ exports.findAllParkingParticulier = async (req, res) => {
             });
             if(data) {
                 await setCache("parkings", data);
-                const parkingParticulierAllList = data.map((parking) => {
-                    return parking;
-                });
-                if(parkingParticulierAllList){
-                    res.status(HttpStatus.OK.code).send(
-                        new Response(
-                            HttpStatus.OK.code,
-                            HttpStatus.OK.message,
-                            `ParkingParticuliers retrieved`,
-                            parkingParticulierAllList
-                        )
-                    );
-                }
-                else{
-                    res.status(HttpStatus.NOT_FOUND.code).send(
-                        new Response(
-                            HttpStatus.NOT_FOUND.code,
-                            HttpStatus.NOT_FOUND.message,
-                            `ParkingParticuliers not found`,
-                        )
-                    );
-                }
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `ParkingParticuliers retrieved`,
+                        data
+                    )
+                );
+            }
+            else{
+                await setCache("parkings", []);
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                        `ParkingParticuliers not found`,
+                    )
+                );
             }
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -388,16 +383,16 @@ exports.updateParkingParticulier = async (req, res) => {
                 );
                 return;
             }
-            ParkingParticulier.findByPk(id).then((data) => {
+            else{
                 res.status(HttpStatus.OK.code).send(
                     new Response(
                         HttpStatus.OK.code,
                         HttpStatus.OK.message,
                         `Parking updated`,
-                        data
+                        response
                     )
                 );
-            });
+            }
         })
         .catch((error) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(

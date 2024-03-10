@@ -10,51 +10,46 @@ const { getCache, setCache } = require('../redis/cache')
 const logger = require("../utils/logger.util.js");
 
 exports.list_post = async (req, res, next) => {
-    const cachedPost = await getCache('posts');
-    if(cachedPost){
-        res.status(HttpStatus.OK.code).send(
-            new Response(
-                HttpStatus.OK.code,
-                HttpStatus.OK.message,
-                `Post cached retrieved`,
-                cachedPost
-            )
-        );
-    }
-    else{
-        Post.findAll({
-            order : [
-                ['price', 'DESC']
-            ],
-            include: [
-                {
-                    model: ParkingParticulier,
-                },
-                {
-                    model: User,
-                    attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
-                },
-                {
-                    model: Picture
-                }
-            ]
-        })
-        .then( async (data) => { 
-            if(data){
+    try {
+        const cachedPost = await getCache('posts');
+        if (cachedPost) {
+            res.status(HttpStatus.OK.code).send(
+                new Response(
+                    HttpStatus.OK.code,
+                    HttpStatus.OK.message,
+                    `Posts cached retrieved`,
+                    cachedPost
+                )
+            );
+        } else {
+            const data = await Post.findAll({
+                order: [
+                    ['price', 'DESC']
+                ],
+                include: [
+                    {
+                        model: ParkingParticulier,
+                    },
+                    {
+                        model: User,
+                        attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
+                    },
+                    {
+                        model: Picture
+                    }
+                ]
+            });
+            if (data) {
                 await setCache('posts', data)
                 res.status(HttpStatus.OK.code).send(
                     new Response(
                         HttpStatus.OK.code,
                         HttpStatus.OK.message,
-                        `All post are retrieved`,
+                        `All posts are retrieved`,
                         data,
                     )
                 );
-            }    
-        })
-        .catch(err => {
-            console.error(err);
-            if(err.name === "'SequelizeUniqueConstraintError'"){
+            } else {
                 res.status(HttpStatus.NOT_FOUND.code).send(
                     new Response(
                         HttpStatus.NOT_FOUND.code,
@@ -62,17 +57,17 @@ exports.list_post = async (req, res, next) => {
                     )
                 )
             }
-            else{
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                    new Response(
-                        HttpStatus.INTERNAL_SERVER_ERROR.code,
-                        HttpStatus.INTERNAL_SERVER_ERROR.message,
-                    )
-                )
-            }
-        })
+        }
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                "Some error occurred while retrieving posts"
+            )
+        )
     }
-}
+};
 
 exports.list_one_post = (req, res) => {
     const id = req.params.id;
