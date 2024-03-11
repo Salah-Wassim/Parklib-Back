@@ -5,7 +5,7 @@ const logger = require("./utils/logger.util.js");
 const HttpStatus = require("./utils/httpStatus.util.js");
 const Response = require("./utils/response.util.js");
 const Http = require('http');
-const SocketIo= require('socket.io');
+const SocketIo = require('socket.io');
 const SocketIoService = require('./services/socketIo.service.js');
 
 const parkingParticulierRouter = require("./routes/parkingParticulier.router.js");
@@ -17,6 +17,7 @@ global.__basedir = __dirname;
 /**
  * IMPORTATION DES ROUTES
  */
+
 const appRouter = require("./routes/app.router.js");
 const authRouter = require("./routes/auth.router.js");
 const userRouter = require("./routes/user.router.js");
@@ -27,10 +28,10 @@ const pictureRouter = require("./routes/picture.router.js");
 const validationStatusRouter = require("./routes/validationStatus.router");
 const commentRouter = require("./routes/comment.router");
 
-
 /**
  * IMPORTATION DES MIDDLEWARES
  */
+
 const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/post_picture', express.static('post_picture'));
 /**
  * IO
  */
+
 const server = Http.Server(app);
 const io = SocketIo(server, {
     transports:['websocket'],
@@ -74,7 +76,7 @@ app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.O
 app.all("*", (req, res) => res.status(HttpStatus.NOT_FOUND.code).send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message ,`This route does not exist`)));
 
 server.listen(PORT, () => {
-    logger.info(`Server is running at http://${ip.address()}:${PORT}`);
+    logger.info(`Server is running at http://${process.env.ADR_IPV4}:${PORT}`);
 });
 
 module.exports = server

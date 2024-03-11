@@ -5,12 +5,26 @@ const logger = require('../utils/logger.util.js');
 const HttpStatus = require('../utils/httpStatus.util.js');
 const Response = require('../utils/response.util.js');
 const UUID = require('uuid');
+const { getCache, setCache } = require('../redis/cache')
 
-exports.findAllUser = (req, res) => {
+exports.findAllUser = async (req, res) => {
     const isActivated = req.query.isActivated??true;
     logger.info(`${req.method} ${req.originalUrl}, Fetching users.`);
-    User.findAll({where: {isActivated: isActivated}, order: [['createdAt', 'DESC']]})
-        .then(data => {
+    const cachedUser = await getCache('users');
+    if(cachedUser){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Users cached retrieved`,
+                cachedUser
+            )
+        );
+    }
+    else{
+        User.findAll({where: {isActivated: isActivated}, order: [['createdAt', 'DESC']]})
+        .then(async(data) => {
+            await setCache('users', data);
             const users = data.map(user => {
                 const {password, ...userWithoutPassword} = user.dataValues;
                 return userWithoutPassword;
@@ -22,6 +36,7 @@ exports.findAllUser = (req, res) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code)
                 .send(new Response(HttpStatus.INTERNAL_SERVER_ERROR.code,HttpStatus.INTERNAL_SERVER_ERROR.message,`Some error occurred while retrieving the accounts.`));
         });
+    }
 };
 
 exports.findOneUser = (req, res) => {

@@ -22,6 +22,16 @@ module.exports = {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },
+            {
+                address: "Rue Sainte-Catherine",
+                zipCode: "33000",
+                city: "Bordeaux",
+                lattitude: 44.83669,
+                longitude: -0.573653,
+                UserId: 3,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
         ])
     },
 

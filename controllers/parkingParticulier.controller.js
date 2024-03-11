@@ -1,34 +1,53 @@
 const ParkingParticulier = require("../models").ParkingParticulier;
+const Post  = require('../models').Post;
+const User = require("../models").User;
 const logger = require("../utils/logger.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
+const { getCache, setCache } = require('../redis/cache.js');
 
 // const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
 
-exports.findAllParkingParticulier = (req, res) => {
+exports.findAllParkingParticulier = async (req, res) => {
     logger.info(
         `${req.method} ${req.originalUrl}, Fetching ALL parkings particuliers.`
     );
-    ParkingParticulier.findAll({
-        order: [["createdAt", "DESC"]],
-    })
-        .then((data) => {
-            const parkingParticulierAllList = data.map((parking) => {
-                return parking;
+    const cachedParking = await getCache("parkings");
+    if(cachedParking && Array.isArray(cachedParking)){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Parking cached retrieved`,
+                cachedParking
+            )
+        );
+    }
+    else{
+        try{
+            const data = await ParkingParticulier.findAll({
+                order: [["createdAt", "DESC"]],
+                include: [
+                    {
+                        model: Post
+                    }
+                ]
             });
-            if(data){
+            if(data) {
+                await setCache("parkings", data);
                 res.status(HttpStatus.OK.code).send(
                     new Response(
                         HttpStatus.OK.code,
                         HttpStatus.OK.message,
                         `ParkingParticuliers retrieved`,
-                        parkingParticulierAllList
+                        data
                     )
                 );
             }
             else{
+                await setCache("parkings", []);
                 res.status(HttpStatus.NOT_FOUND.code).send(
                     new Response(
                         HttpStatus.NOT_FOUND.code,
@@ -37,8 +56,7 @@ exports.findAllParkingParticulier = (req, res) => {
                     )
                 );
             }
-        })
-        .catch((err) => {
+        } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
                 new Response(
                     HttpStatus.INTERNAL_SERVER_ERROR.code,
@@ -46,7 +64,8 @@ exports.findAllParkingParticulier = (req, res) => {
                     `Some error occurred while retrieving parkings`
                 )
             );
-        });
+        }
+    } 
 };
 
 exports.findOneParkingParticulier = (req, res) => {
@@ -95,7 +114,7 @@ exports.findOneParkingParticulier = (req, res) => {
         });
 };
 
-exports.findAllParkingParticulierByUser = (req, res) => {
+exports.findAllParkingParticulierByUser = async (req, res) => {
     const id = req.params.id;
     if (!id) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
@@ -110,12 +129,32 @@ exports.findAllParkingParticulierByUser = (req, res) => {
     logger.info(
         `${req.method} ${req.originalUrl}, Fetching all parkings for User #${id}.`
     );
-    ParkingParticulier.findAll({
-        where: { user_id: id },
-        order: [["createdAt", "DESC"]],
-    })
-        .then((data) => {
+    const cachedParkingByUser = await getCache("parkingsByUser");
+    if(cachedParkingByUser){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Parking by user cached retrieved`,
+                cachedParkingByUser
+            )
+        );
+    }
+    else{
+        ParkingParticulier.findAll({
+            include: [
+                {
+                    model: User,
+                    where:{
+                        id: req.params.id
+                    },
+                    attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
+                },
+            ]
+        })
+        .then(async (data) => {
             if(data){
+                await setCache("parkingsByUser", data, 60)
                 res.status(HttpStatus.OK.code).send(
                     new Response(
                         HttpStatus.OK.code,
@@ -145,6 +184,7 @@ exports.findAllParkingParticulierByUser = (req, res) => {
                 )
             );
         });
+    }
 };
 
 exports.findActivatedParkingParticulierByParams = (req, res) => {
@@ -210,9 +250,9 @@ exports.addParkingParticulier = async (req, res) => {
     if (
         !req.body.address ||
         !req.body.zipCode ||
-        !req.body.city ||
-        !req.body.longitude ||
-        !req.body.lattitude
+        !req.body.city
+        // !req.body.longitude ||
+        // !req.body.lattitude
     ) {
         res.status(HttpStatus.BAD_REQUEST.code).send(
             new Response(
@@ -244,9 +284,9 @@ exports.addParkingParticulier = async (req, res) => {
     .then( async (data) => {
         if(typeof(req.body.address) === "string" && 
             typeof(req.body.zipCode) === "string" &&
-            typeof(req.body.city) === "string" &&
-            typeof(req.body.longitude) === "number" &&
-            typeof(req.body.lattitude) === "number"
+            typeof(req.body.city) === "string"
+            // typeof(req.body.longitude) === "number" &&
+            // typeof(req.body.lattitude) === "number"
         ){
             res.status(HttpStatus.CREATED.code).send(
                 new Response(
@@ -343,16 +383,16 @@ exports.updateParkingParticulier = async (req, res) => {
                 );
                 return;
             }
-            ParkingParticulier.findByPk(id).then((data) => {
+            else{
                 res.status(HttpStatus.OK.code).send(
                     new Response(
                         HttpStatus.OK.code,
                         HttpStatus.OK.message,
                         `Parking updated`,
-                        data
+                        response
                     )
                 );
-            });
+            }
         })
         .catch((error) => {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
@@ -419,6 +459,70 @@ exports.deleteParkingParticulier = async (req, res) => {
         );
     });
 };
+
+// exports.findAllParkingParticulier = async (req, res) => {
+//     logger.info(
+//         `${req.method} ${req.originalUrl}, Fetching ALL parkings particuliers.`
+//     );
+//         const cachedParking = await getCache("parkings");
+//         if(cachedParking){
+//             res.status(HttpStatus.OK.code).send(
+//                 new Response(
+//                     HttpStatus.OK.code,
+//                     HttpStatus.OK.message,
+//                     `Parking cached retrieved`,
+//                     cachedParking
+//                 )
+//             );
+//         }
+//         else{
+//             /// Intéger la requête qui récupére les parkings
+//             ParkingParticulier.findAll({
+//                 order: [["createdAt", "DESC"]],
+//                 include: [
+//                     {
+//                         model: Post
+//                     }
+//                 ]
+//             })
+//             .then( async (data) => {
+//                 if(data) {
+//                     await setCache("parkings", data, 6);
+//                     const parkingParticulierAllList = data.map((parking) => {
+//                         return parking;
+//                     });
+//                     if(parkingParticulierAllList){
+//                         res.status(HttpStatus.OK.code).send(
+//                             new Response(
+//                                 HttpStatus.OK.code,
+//                                 HttpStatus.OK.message,
+//                                 `ParkingParticuliers retrieved`,
+//                                 parkingParticulierAllList
+//                             )
+//                         );
+//                     }
+//                     else{
+//                         res.status(HttpStatus.NOT_FOUND.code).send(
+//                             new Response(
+//                                 HttpStatus.NOT_FOUND.code,
+//                                 HttpStatus.NOT_FOUND.message,
+//                                 `ParkingParticuliers not found`,
+//                             )
+//                         );
+//                     }
+//                 }
+//             })
+//             .catch((err) => {
+//                 res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+//                     new Response(
+//                         HttpStatus.INTERNAL_SERVER_ERROR.code,
+//                         HttpStatus.INTERNAL_SERVER_ERROR.message,
+//                         `Some error occurred while retrieving parkings`
+//                     )
+//                 );
+//             })  
+//         } 
+// };
 
 /* Suppression du rôle lors de la suppression du parking
 const parking = await ParkingParticulier.findAll({where : {UserId : UserIdConnected}});

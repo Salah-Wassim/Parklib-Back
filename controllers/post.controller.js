@@ -5,61 +5,69 @@ const User = require("../models").User;
 const Picture = require("../models").Picture;
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
+const { getCache, setCache } = require('../redis/cache')
 
-const SocketIoService = require('../services/socketIo.service.js');
 const logger = require("../utils/logger.util.js");
 
-
-exports.list_post = (req, res, next) => {
-    Post.findAll({
-        order : [
-            ['price', 'DESC']
-        ],
-        include: [
-            {
-                model: ParkingParticulier,
-            },
-            {
-                model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
-            },
-            {
-                model: Picture
-            }
-        ]
-    })
-    .then(data => { 
-        if(data){
+exports.list_post = async (req, res, next) => {
+    try {
+        const cachedPost = await getCache('posts');
+        if (cachedPost) {
             res.status(HttpStatus.OK.code).send(
                 new Response(
                     HttpStatus.OK.code,
                     HttpStatus.OK.message,
-                    `All post are retrieved`,
-                    data,
+                    `Posts cached retrieved`,
+                    cachedPost
                 )
             );
-        }    
-    })
-    .catch(err => {
-        console.error(err);
-        if(err.name === "'SequelizeUniqueConstraintError'"){
-            res.status(HttpStatus.NOT_FOUND.code).send(
-                new Response(
-                    HttpStatus.NOT_FOUND.code,
-                    HttpStatus.NOT_FOUND.message,
+        } else {
+            const data = await Post.findAll({
+                order: [
+                    ['price', 'DESC']
+                ],
+                include: [
+                    {
+                        model: ParkingParticulier,
+                    },
+                    {
+                        model: User,
+                        attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
+                    },
+                    {
+                        model: Picture
+                    }
+                ]
+            });
+            if (data) {
+                await setCache('posts', data)
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `All posts are retrieved`,
+                        data,
+                    )
+                );
+            } else {
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                    )
                 )
-            )
+            }
         }
-        else{
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                )
+    } catch (err) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+            new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR.code,
+                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                "Some error occurred while retrieving posts"
             )
-        }
-    })
-}
+        )
+    }
+};
 
 exports.list_one_post = (req, res) => {
     const id = req.params.id;
@@ -120,113 +128,141 @@ exports.list_one_post = (req, res) => {
     })
 }
 
-exports.list_post_by_parkingParticulier = (req, res, next) => {
-    Post.findAll({
-        order : [
-            ['price', 'DESC']
-        ],
-        include: [
-            {
-                model: ParkingParticulier,
-                where: {
-                    id: req.params.id
+exports.list_post_by_parkingParticulier = async (req, res, next) => {
+    const cachedPostByParking = await getCache('postsByParking');
+    if(cachedPostByParking){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Post by parking cached retrieved`,
+                cachedPostByParking
+            )
+        );
+    }
+    else{
+        Post.findAll({
+            order : [
+                ['price', 'DESC']
+            ],
+            include: [
+                {
+                    model: ParkingParticulier,
+                    where: {
+                        id: req.params.id
+                    }
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
+                },
+                {
+                    model: Picture
                 }
-            },
-            {
-                model: User,
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email', 'picture']
-            },
-            {
-                model: Picture
+            ]
+        })
+        .then(async(data) => {     
+            if(data){
+                await setCache('postsByParking', data)
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `All post by parking are retrieved`,
+                        data,
+                    )
+                );
+            }    
+        })
+        .catch(err => {
+            console.error(err);
+            if(err.name === "'SequelizeUniqueConstraintError'"){
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                    )
+                )
             }
-        ]
-    })
-    .then(data => {     
-        if(data){
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `All post by parking are retrieved`,
-                    data,
+            else{
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    )
                 )
-            );
-        }    
-    })
-    .catch(err => {
-        console.error(err);
-        if(err.name === "'SequelizeUniqueConstraintError'"){
-            res.status(HttpStatus.NOT_FOUND.code).send(
-                new Response(
-                    HttpStatus.NOT_FOUND.code,
-                    HttpStatus.NOT_FOUND.message,
-                )
-            )
-        }
-        else{
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                )
-            )
-        }
-    })
+            }
+        })
+    }
 }
 
-exports.list_post_by_user = (req, res, next) => {
-    Post.findAll({
-        order : [
-            ['price', 'DESC']
-        ],
-        include: [
-            {
-                model: ParkingParticulier,
-            },
-            {
-                model: User,
-                where:{
-                    id: req.params.id
+exports.list_post_by_user = async (req, res, next) => {
+    const cachedPostByUser = await getCache('postsByUser');
+    if(cachedPostByUser){
+        res.status(HttpStatus.OK.code).send(
+            new Response(
+                HttpStatus.OK.code,
+                HttpStatus.OK.message,
+                `Post by user cached retrieved`,
+                cachedPostByUser
+            )
+        );
+    }
+    else{
+        Post.findAll({
+            order : [
+                ['price', 'DESC']
+            ],
+            include: [
+                {
+                    model: ParkingParticulier,
                 },
-                attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
-            },
-            {
-                model: ValidationStatus,
-                attributes: ['id', 'title']
-            },
-        ]
-    })
-    .then(data => {     
-        if(data){
-            res.status(HttpStatus.OK.code).send(
-                new Response(
-                    HttpStatus.OK.code,
-                    HttpStatus.OK.message,
-                    `All post by user are retrieved`,
-                    data,
+                {
+                    model: User,
+                    where:{
+                        id: req.params.id
+                    },
+                    attributes: ['id', 'firstName', 'lastName', 'phone', 'email'],
+                },
+                {
+                    model: ValidationStatus,
+                    attributes: ['id', 'title']
+                },
+            ]
+        })
+        .then(async (data) => {     
+            if(data){
+                await setCache('postsByUser', data)
+                res.status(HttpStatus.OK.code).send(
+                    new Response(
+                        HttpStatus.OK.code,
+                        HttpStatus.OK.message,
+                        `All post by user are retrieved`,
+                        data,
+                    )
+                );
+            }    
+        })
+        .catch(err => {
+            console.error(err);
+            if(err.name === "'SequelizeUniqueConstraintError'"){
+                res.status(HttpStatus.NOT_FOUND.code).send(
+                    new Response(
+                        HttpStatus.NOT_FOUND.code,
+                        HttpStatus.NOT_FOUND.message,
+                    )
                 )
-            );
-        }    
-    })
-    .catch(err => {
-        console.error(err);
-        if(err.name === "'SequelizeUniqueConstraintError'"){
-            res.status(HttpStatus.NOT_FOUND.code).send(
-                new Response(
-                    HttpStatus.NOT_FOUND.code,
-                    HttpStatus.NOT_FOUND.message,
+            }
+            else{
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+                    new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR.code,
+                        HttpStatus.INTERNAL_SERVER_ERROR.message,
+                    )
                 )
-            )
-        }
-        else{
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
-                new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR.code,
-                    HttpStatus.INTERNAL_SERVER_ERROR.message,
-                )
-            )
-        }
-    })
+            }
+        })
+    }
 }
 
 exports.create_post = async (req, res, next) => {

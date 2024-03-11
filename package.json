@@ -8,7 +8,8 @@
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all ",
     "db:reset:dev": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all && nodemon app.js",
     "start:dev": "nodemon app.js",
-    "start:prod": "node app.js"
+    "start:prod": "node app.js",
+    "test": "jest"
   },
   "keywords": [
     "nodejs",
@@ -35,12 +36,15 @@
     "mysql2": "^2.3.3",
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1",
+    "redis": "^4.6.6",
     "sequelize": "^6.25.3",
     "socket.io": "^4.6.1",
     "util": "^0.12.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
+    "jest": "^29.5.0",
     "nodemon": "^2.0.20",
     "sequelize-cli": "^6.5.2"
   }
