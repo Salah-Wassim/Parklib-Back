@@ -31,13 +31,13 @@ scenarios:
           url: "/auth"
           json:
             email: "lea.duboix@yopmail.com"
-            password: "leaDuboix123"
+            password: "123456789"
       - post:
           url: "/parking-particulier/add"
           json:
-            address: "36 rue de la cité des Pins"
-            zipCode: "85180"
-            city: "Les Sables-d'Olonne"
+            address: "36 rue des cocotiers"
+            zipCode: "75000"
+            city: "Paris"
       - get:
           url: "/parking-particulier"
       - get:
