@@ -48,7 +48,6 @@ app.use(cors({
                                            // pre-flight OPTIONS requests
 }));
 
-app.use(cors({origin:'*'}));
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
