@@ -37,27 +37,22 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
-  `http://localhost:${PORT}`,
-  `http://${process.env.ADR_IPV4}:${PORT}`
+    `http://localhost:${PORT}`,
+    `http://${process.env.ADR_IPV4}:${PORT}/`
 ];
 
-const isOriginAllowed = (origin) => {
-  return allowedOrigins.includes(origin);
+let corsOptions = {
+    origin: (origin, callback) => {
+        console.log("origin", origin)
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Origin not allowed by CORS'));
+        }
+    },
+    credentials: true, // Allow credentials (cookies, authorization headers)
+    methods: 'POST,GET,PUT,OPTIONS,DELETE'
 };
-
-// CORS configuration
-app.use(cors({
-  origin: (origin, callback) => {
-    if (isOriginAllowed(origin)) {
-      callback(null, origin);
-    } else {
-      callback(new Error('Origin not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow credentials (cookies, authorization headers)
-  methods: 'POST,GET,PUT,OPTIONS,DELETE' // Allowed HTTP methods
-}));
-
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
@@ -96,6 +91,8 @@ app.use('/users',userRouter);
 app.use('/role',roleRouter);
 app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.OK.message ,`Welcome to the Parklib's API, v1.0.0`,{apiDocs:`http://${ip.address()}:${PORT}/api-docs`})));
 app.all("*", (req, res) => res.status(HttpStatus.NOT_FOUND.code).send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message ,`This route does not exist`)));
+
+app.use(cors(corsOptions));
 
 server.listen(PORT, () => {
     logger.info(`Server is running at http://${process.env.ADR_IPV4}:${PORT}`);
