@@ -36,17 +36,28 @@ const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const allowedOrigins = [
+  `http://localhost:${PORT}`,
+  `http://${process.env.ADR_IPV4}:${PORT}`
+];
+
+const isOriginAllowed = (origin) => {
+  return allowedOrigins.includes(origin);
+};
+
+// CORS configuration
 app.use(cors({
-    origin: true, // "true" will copy the domain of the request back
-                  // to the reply. If you need more control than this
-                  // use a function.
-    credentials: true, // This MUST be "true" if your endpoint is
-                       // authenticated via either a session cookie
-                       // or Authorization header. Otherwise the
-                       // browser will block the response.
-    methods: 'POST,GET,PUT,OPTIONS,DELETE' // Make sure you're not blocking
-                                           // pre-flight OPTIONS requests
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error('Origin not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow credentials (cookies, authorization headers)
+  methods: 'POST,GET,PUT,OPTIONS,DELETE' // Allowed HTTP methods
 }));
+
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
