@@ -33,6 +33,7 @@ const commentRouter = require("./routes/comment.router");
  */
 
 const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
+const removePoweredBy = require('./middleware/poweredByHeaderRemover.js').removePoweredBy;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -52,6 +53,8 @@ let corsOptions = {
     credentials: true, // Allow credentials (cookies, authorization headers)
     methods: 'POST,GET,PUT,OPTIONS,DELETE'
 };
+
+app.use(removePoweredBy);
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
