@@ -51,10 +51,15 @@ let corsOptions = {
         }
     },
     credentials: true, // Allow credentials (cookies, authorization headers)
-    methods: 'POST,GET,PUT,OPTIONS,DELETE'
+    methods: 'POST,GET,PUT,OPTIONS,DELETE',
+    headers: ['Content-Type', 'Authorization']
 };
 
 app.use(removePoweredBy);
+app.use((req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    next();
+});
 
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
