@@ -66,7 +66,7 @@ const getCache = async (key) => {
  */
 const setCache = async (key, data, time) => {
     try {
-        const cacheTime = time || 60; // Temps de cache par défaut en secondes
+        const cacheTime = time || 600; // Temps de cache par défaut en secondes
         const setData = await client.setEx(key, cacheTime, JSON.stringify(data));
         if(setData){
             console.log('Data cached');
@@ -79,8 +79,34 @@ const setCache = async (key, data, time) => {
     }
 }
 
+/**
+ * Fonction pour stocker une donnée en cache Redis
+ * @param {string} key - Clé à utiliser pour stocker les données en cache
+ * @param {Object} data - Données à stocker en cache
+ * @returns {Promise<void>}
+ */
+const setDataCache = async (key, data) => {
+    try{
+        const retriveArray = await getCache(key);
+        if(!retriveArray){
+            return;
+        }
+        retriveArray.push(data);
+        const updateJsonData = JSON.stringify(retriveArray);
+
+        await setCache(key, updateJsonData);
+
+    } catch(error){
+        console.error('Redis error: ' + error);
+        await client.disconnect();
+        await client.connect();
+        throw error;
+    }
+}
+
 module.exports = {
     getCache,
-    setCache
+    setCache,
+    setDataCache
 };
 
