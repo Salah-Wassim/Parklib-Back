@@ -6,7 +6,7 @@ const post_controller = require('../controllers/post.controller');
 
 router.get('/', post_controller.list_post);
 router.get('/:id', post_controller.list_one_post);
-router.post('/', authenticateJWT, post_controller.create_post);
+router.post('/add', authenticateJWT, post_controller.create_post);
 router.put('/:id', authenticateJWT, post_controller.edit_post);
 router.put('/:id/edit-validation-status', post_controller.update_validationStatus_post);
 router.get('/:id', post_controller.details_post);

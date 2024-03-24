@@ -5,7 +5,7 @@ const logger = require("../utils/logger.util.js");
 const HttpStatus = require("../utils/httpStatus.util.js");
 const Response = require("../utils/response.util.js");
 const { Op } = require("sequelize");
-const { getCache, setCache } = require('../redis/cache.js');
+const { getCache, setCache, setDataCache } = require('../redis/cache.js');
 
 // const apiGouvAdresseService = require("../services/apiGouvAdresse.services");
 // const uploadFile = require("../middleware/uploadPictureParkingParticulier.middleware");
@@ -142,6 +142,7 @@ exports.findAllParkingParticulierByUser = async (req, res) => {
     }
     else{
         ParkingParticulier.findAll({
+            order: [["createdAt", "DESC"]],
             include: [
                 {
                     model: User,
@@ -288,6 +289,7 @@ exports.addParkingParticulier = async (req, res) => {
             // typeof(req.body.longitude) === "number" &&
             // typeof(req.body.lattitude) === "number"
         ){
+            await setDataCache("parkings", data)
             res.status(HttpStatus.CREATED.code).send(
                 new Response(
                     HttpStatus.CREATED.code,

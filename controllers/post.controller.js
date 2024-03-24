@@ -270,14 +270,24 @@ exports.create_post = async (req, res, next) => {
     const { title, description, price, contact, isAssured, typeOfPlace, ValidationStatusId, ParkingParticulierId } = req.body
     const user = req.user
 
-    if(!ParkingParticulierId){
-        res.status(HttpStatus.FORBIDDEN.code).send(
-            new Response(
-                HttpStatus.FORBIDDEN.code,
-                HttpStatus.FORBIDDEN.message,
-                "You can't create a post because you don't own a parking lot"
-            )
-        )
+    let lastParkingPlaceCreated;
+
+    const retrieveParkings = await getCache('parkings');
+    
+    if(retrieveParkings && Array.isArray(retrieveParkings)){
+        lastParkingPlaceCreated = retrieveParkings.find((parking) => parking.UserId === user.id);
+    }
+  
+    const parkingParticulier = await ParkingParticulier.findAll({
+        order: [["createdAt", "DESC"]],
+        where:{
+            UserId: user.id
+        }
+    });
+
+    if(parkingParticulier){
+        console.log(parkingParticulier[0]);
+        lastParkingPlaceCreated = parkingParticulier[0]
     }
 
     let post = {};
@@ -290,7 +300,7 @@ exports.create_post = async (req, res, next) => {
         isAssured : isAssured && typeof(isAssured)==="boolean" ? isAssured : false,
         typeOfPlace : typeOfPlace && typeof(typeOfPlace )==="string" ? typeOfPlace : "",
         ValidationStatusId : ValidationStatusId && typeof(ValidationStatusId)==="number" ? ValidationStatusId : 1,
-        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : null,
+        ParkingParticulierId: ParkingParticulierId && typeof (ParkingParticulierId) === "number" ? ParkingParticulierId : lastParkingPlaceCreated.id,
         UserId: user.id && typeof(user.id) === "number" ? user.id : null
     }
 
@@ -311,49 +321,57 @@ exports.create_post = async (req, res, next) => {
         `${req.method} ${req.originalUrl}, Creating new post.`
     );
 
-    Post.create(post)
-    .then(data => {
-        if(data[0]===0){
-            res.status(HttpStatus.BAD_REQUEST.code).send(
+    if(parkingParticulier || lastParkingPlaceCreated.UserId === user.id){
+        Post.create(post)
+        .then(data => {
+            if(data[0]===0){
+                res.status(HttpStatus.BAD_REQUEST.code).send(
+                    new Response(
+                        HttpStatus.BAD_REQUEST.code,
+                        HttpStatus.BAD_REQUEST.message,
+                        'The response returned is empty',
+                    )
+                )
+            }
+            else {
+                res.status(HttpStatus.CREATED.code).send(
+                    new Response(
+                        HttpStatus.CREATED.code,
+                        HttpStatus.CREATED.message,
+                        'Post is created',
+                        data
+                    )
+                )
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if(err.name === "SequelizeUniqueConstraintError"){
+                res.status(HttpStatus.CONFLICT.code).send(
+                    new Response(
+                        HttpStatus.CONFLICT.code,
+                        HttpStatus.CONFLICT.message,
+                        'The post you\'ve been created is already existing'
+                    )
+                )
+            }
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
                 new Response(
-                    HttpStatus.BAD_REQUEST.code,
-                    HttpStatus.BAD_REQUEST.message,
-                    'The response returned is empty',
+                    HttpStatus.INTERNAL_SERVER_ERROR.code,
+                    HttpStatus.INTERNAL_SERVER_ERROR.message,
                 )
             )
-        }
-        else {
-
-            SocketIoService.socket.broadcast.emit('message', `${req.method} ${req.originalUrl}, Fetching users.`);
-    
-            res.status(HttpStatus.CREATED.code).send(
-                new Response(
-                    HttpStatus.CREATED.code,
-                    HttpStatus.CREATED.message,
-                    'Post is created',
-                    data
-                )
-            )
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        if(err.name === "SequelizeUniqueConstraintError"){
-            res.status(HttpStatus.CONFLICT.code).send(
-                new Response(
-                    HttpStatus.CONFLICT.code,
-                    HttpStatus.CONFLICT.message,
-                    'The post you\'ve been created is already existing'
-                )
-            )
-        }
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR.code).send(
+        })
+    }
+    else{
+        res.status(HttpStatus.FORBIDDEN.code).send(
             new Response(
-                HttpStatus.INTERNAL_SERVER_ERROR.code,
-                HttpStatus.INTERNAL_SERVER_ERROR.message,
+                HttpStatus.FORBIDDEN.code,
+                HttpStatus.FORBIDDEN.message,
+                "You can't create a post"
             )
         )
-    })
+    }
 }
 
 exports.edit_post = async (req, res, next) => {
