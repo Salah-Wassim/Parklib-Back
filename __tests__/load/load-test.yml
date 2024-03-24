@@ -1,0 +1,58 @@
+config:
+  # This is a test server run by team Artillery
+  target: http://localhost:3000
+
+  phases:
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 5
+      name: Warm up phase
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 10
+      name: Ramp up load
+    - duration: 300
+      arrivalRate: 10
+      rampTo: 30
+      name: Spike phase
+
+  plugins:
+    ensure: {}
+    apdex: {}
+  ensure:
+    p95: 200
+  apdex:
+    threshold: 100
+    
+scenarios:
+  - flow:
+    - loop:
+      - post:
+          url: "/auth"
+          json:
+            email: "lea.duboix@yopmail.com"
+            password: "123456789"
+      - post:
+          url: "/parking-particulier/add"
+          json:
+            address: "36 rue des cocotiers"
+            zipCode: "75000"
+            city: "Paris"
+      - get:
+          url: "/parking-particulier"
+      - get:
+          url: "/parking-particulier/user/4"
+      - get:
+          url: "/annonce"
+      - get:
+          url: "/annonce/user/4"
+      - post:
+          url: "/annonce"
+          json:
+            title : "Parking des Pins"
+            description: "Vraiment bien"
+            price: 60
+            typeOfPlace: "aerien"
+            contact: "telephone"
+            isAssured: true
+    count: 100

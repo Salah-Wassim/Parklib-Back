@@ -33,10 +33,34 @@ const commentRouter = require("./routes/comment.router");
  */
 
 const authenticateJWT = require("./middleware/authjwt.js").authenticateJWT;
+const removePoweredBy = require('./middleware/poweredByHeaderRemover.js').removePoweredBy;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({origin:'*'}));
+const allowedOrigins = [
+    `http://localhost:${PORT}`,
+    `http://${process.env.ADR_IPV4}:${PORT}/`
+];
+
+let corsOptions = {
+    origin: (origin, callback) => {
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Origin not allowed by CORS'));
+        }
+    },
+    credentials: true, // Allow credentials (cookies, authorization headers)
+    methods: 'POST,GET,PUT,OPTIONS,DELETE',
+    headers: ['Content-Type', 'Authorization']
+};
+
+app.use(removePoweredBy);
+app.use((req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    next();
+});
+
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
@@ -72,8 +96,10 @@ app.use('/auth', authRouter);
 app.use('/comments', commentRouter);
 app.use('/users',userRouter);
 app.use('/role',roleRouter);
-app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.OK.message ,`Welcome to the Parklib's API, v1.0.0`,{apiDocs:`http://${ip.address()}:${PORT}/api-docs`})));
+app.get("/", (req, res) => res.send(new Response(HttpStatus.OK.code,HttpStatus.OK.message ,`Welcome to the Parklib's API, v1.0.0`)));
 app.all("*", (req, res) => res.status(HttpStatus.NOT_FOUND.code).send(new Response(HttpStatus.NOT_FOUND.code,HttpStatus.NOT_FOUND.message ,`This route does not exist`)));
+
+app.use(cors(corsOptions));
 
 server.listen(PORT, () => {
     logger.info(`Server is running at http://${process.env.ADR_IPV4}:${PORT}`);

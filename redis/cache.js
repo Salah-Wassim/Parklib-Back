@@ -5,11 +5,27 @@ const client = redis.createClient({
     url: 'redis://redis-cache:6379' 
 });
 
-client.on('error', function (err) {
-    console.log("client error")
-    console.error('Redis error: ' + err);
-    client.disconnect();
-    setTimeout(client.connect(), 15000);
+(async () => {
+    try {
+      await client.connect();
+      console.log('Connected to Redis server');
+    } catch (error) {
+      console.error('Redis error:', error);
+      process.exit(1); // Arrêtez l'application en cas d'erreur de connexion
+    }
+})();
+
+// Gestionnaires d'événements pour SIGINT et SIGTERM
+process.on('SIGINT', () => {
+    client.quit();
+    console.log('Closing Redis connection');
+    process.exit(0);
+});
+  
+process.on('SIGTERM', () => {
+    client.quit();
+    console.log('Closing Redis connection');
+    process.exit(0);
 });
 
 /**
@@ -19,18 +35,10 @@ client.on('error', function (err) {
  */
 const getCache = async (key) => {
     try {
-        if (!client.connect()) {
-            console.log("!client")
-            await new Promise((resolve, reject) => {
-                client.once('connect', resolve);
-                client.once('error', reject);
-            });
-        }
         console.log('key', key);
         const cachedData = await client.get(key)
         if (cachedData) {
             console.log('Data retrieved from cache');
-            await client.disconnect();
             const parsedData = JSON.parse(cachedData);
             if (Array.isArray(parsedData)) {
               return parsedData;
@@ -58,15 +66,10 @@ const getCache = async (key) => {
  */
 const setCache = async (key, data, time) => {
     try {
-        if (client.status === "end") {
-            await client.connect()
-        }
         const cacheTime = time || 60; // Temps de cache par défaut en secondes
         const setData = await client.setEx(key, cacheTime, JSON.stringify(data));
         if(setData){
             console.log('Data cached');
-            await client.disconnect();
-            console.log("client disconnect");
         }
     } catch (error) {
         console.error('Redis error: ' + error);
